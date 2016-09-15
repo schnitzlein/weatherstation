@@ -292,13 +292,15 @@ class Example(object):
                       logo = pygame.transform.scale(logo, (w,h)) 
                       mytft.screen.blit(logo, (textAnchorX, textAnchorY))
                       textAnchorX+=textXoffset
-                    finally:
+                    except pygame.error as message:
                       if w < 10 or h < 10:
                         logging.warn(forecastIcons)
-                        str = "scale err: {}" .format(w) #+ " " + .format(h)
+                        str = "err width: {}" .format(w)
+                        str = str + " height: {}" .format(h)
                         logging.warn(str)
-                        w = logo.get_width() - 150
-                        h = logo.get_height() - 150
+                        logging.warn(message)
+                        #w = logo.get_width() - 150
+                        #h = logo.get_height() - 150
                       #mytft.screen.blit("blah", (textAnchorX, textAnchorY))
                       #textAnchorX+=textXoffset
                       #logging.warn("icon err")
