@@ -169,7 +169,7 @@ class Example(object):
                 todayDesc = "It is " + weather_com_result['current_conditions']['text'].lower() + " today."
  
                 # summary and description of forecast data                
-                forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
+                forecastDesc = ["Day", "Max", "Min", "   ", "   "] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
                 
                 # extract forecast data
                 forecastDays = {}
@@ -204,7 +204,6 @@ class Example(object):
                 logo = pygame.transform.scale(logo, (w,h)) 
                 mytft.screen.blit(logo, (0, 0))
  
-                forecastIcons[0] = icon # BugFix
                 # set the anchor for the current weather data text
                 textAnchorX = 260 # 310 war ok bei 328 Bild
                 textAnchorY = 5
