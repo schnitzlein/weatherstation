@@ -15,3 +15,10 @@ python + pygame + pywapi-repository
 pygame Resolution
 width  = 656
 height = 415
+
+
+Disclaimer Warranty
+
+The Icons are by Merlin the Red, with great thanks to him, my Art Skills are ... okay.
+http://www.deviantart.com/art/plain-weather-icons-157162192
+There are only for private purpose not for commercial use.
