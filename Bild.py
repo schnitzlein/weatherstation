@@ -14,7 +14,8 @@ import logging
 #
 # I modify the original code for my 4 inch display and that it work in two 'screens'. First shows the currentday, Secound shows the forecast.
  
-installPath = "/opt/PiTFTWeather/"
+installPathImgBig = "/opt/PiTFTWeather/img/big/"
+installPathImgSmall = "/opt/PiTFTWeather/img/small/"
  
 # location for Cottbus, Brandenburg, Germany on weather.com
 weatherDotComLocationCode = 'GMXX0171'
@@ -188,7 +189,7 @@ class Example(object):
                     forecastPrecips[i] = weather_com_result['forecasts'][i]['day']['chance_precip'] + "%"
                     forecastWinds[i] = weather_com_result['forecasts'][i]['day']['wind']['speed'] + \
                         weather_com_result['forecasts'][i]['day']['wind']['text']
-                    forecastIcons[i] = installPath+ (weather_com_result['forecasts'][i]['day']['icon']) + ".png"
+                    forecastIcons[i] = installPathImgSmall + (weather_com_result['forecasts'][i]['day']['icon']) + ".png"
                 
                         
                 # 1. screen, dayInformation
@@ -196,7 +197,7 @@ class Example(object):
                 mytft.screen.fill(colourBlack)
  
                 # Render the weather logo at 0,0
-                icon = installPath+ (weather_com_result['current_conditions']['icon']) + ".png"
+                icon = installPathImgBig + (weather_com_result['current_conditions']['icon']) + ".png"
                 logo = pygame.image.load(icon).convert()
                 w = logo.get_width() - 50
                 h = logo.get_height() - 50
@@ -287,24 +288,19 @@ class Example(object):
                     #textAnchorX+=textXoffset
                     try:
                       logo = pygame.image.load(forecastIcons[i]).convert()
-                      w = logo.get_width() - 265
-                      h = logo.get_height() - 265
+                      w = logo.get_width()
+                      h = logo.get_height()
                       logo = pygame.transform.scale(logo, (w,h)) 
                       mytft.screen.blit(logo, (textAnchorX, textAnchorY))
                       textAnchorX+=textXoffset
                     except pygame.error as message:
-                      if w < 10 or h < 10:
-                        logging.warn(forecastIcons)
-                        str = "err width: {}" .format(w)
-                        str = str + " height: {}" .format(h)
-                        logging.warn(str)
-                        logging.warn(message)
-                        #w = logo.get_width() - 150
-                        #h = logo.get_height() - 150
-                      #mytft.screen.blit("blah", (textAnchorX, textAnchorY))
-                      #textAnchorX+=textXoffset
-                      #logging.warn("icon err")
-                     # logging.warn(forecastIcon[0])
+                      logging.warn(forecastIcons)
+                      str = "err width: {}" .format(w)
+                      str = str + " height: {}" .format(h)
+                      logging.warn(str)
+                      logging.warn(message)
+                      #w = logo.get_width() - 150
+                      #h = logo.get_height() - 150
                 
                 
                 # today desc under the table
