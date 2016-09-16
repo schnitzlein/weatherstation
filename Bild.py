@@ -106,7 +106,13 @@ class Example(object):
        else:
            return weather_com_result
        
-      
+    
+    # to see the clock with secounds
+    def showClock(self):
+      updated = time.strftime("%H:%M:%S")
+      text_surface = fontS2.render(updated, True, colourWhite)
+      mytft.screen.blit(text_surface, (10, 260))
+    
     #todo: seperate code in state-machine in run and put other stuff in seperate functions
     # implement run method
     def run(self):
@@ -242,6 +248,7 @@ class Example(object):
                   global betweenTime
                   time.sleep(1)
                   i = i + 1
+                  showClock()
                   pygame.display.update() 
                   #time.sleep(screenTimeOffset)
                   
