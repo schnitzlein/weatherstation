@@ -21,7 +21,7 @@ installPathImgSmall = "/opt/PiTFTWeather/img/small/"
 weatherDotComLocationCode = 'GMXX0171'
 
  
-class pitft :
+class PyLcd :
     screen = None;
     colourBlack = (0, 0, 0)
  
@@ -63,7 +63,7 @@ class pitft :
         #print "Destructor pygame display shuts down."
  
 # Create an instance of the PyScope class
-mytft = pitft()
+lcd = PyLcd()
  
 pygame.mouse.set_visible(False)
 
@@ -93,8 +93,10 @@ h = 0
 w = 0
  
 # starting class
-class Example(object): 
-   
+class PygameWeather(object): 
+    # class variable shared by all instances
+    variabel_0 = 'test'
+    
     # call weather server, if no connection or error return old data
     def callServer( self, mydict ):
        old_values = mydict.copy()
@@ -111,7 +113,7 @@ class Example(object):
     def showClock(self):
       updated = time.strftime("%H:%M:%S")
       text_surface = fontS2.render(updated, True, colourWhite)
-      mytft.screen.blit(text_surface, (10, 260))
+      lcd.screen.blit(text_surface, (10, 260))
     
     #todo: seperate code in state-machine in run and put other stuff in seperate functions
     # implement run method
@@ -142,8 +144,8 @@ class Example(object):
                 #FIXME: every iteration will be generated an new Object that memory bad...
                 # retrieve data from weather.com and keep old values if no connection
                 if state == "initial":
-                  blub = Example()
-                  weather_com_result = blub.callServer( weather_com_result )
+                  blub = PygameWeather()
+                  weather_com_result = self.callServer( weather_com_result )
                   state = "screen1"
                   # if weather_com_result is empty check TODO: FIXME
                   # run alternative data, infunction
@@ -151,9 +153,9 @@ class Example(object):
                 if betweenTime >= updateRate:
                   betweenTime = 0
                   state = "network"
-                  blub = Example()
+                  blub = PygameWeather()
                   logging.info("1 hour is over, Calling server...")
-                  weather_com_result = blub.callServer( weather_com_result )
+                  weather_com_result = self.callServer( weather_com_result )
                   logging.info("Calling server successful")
                   state = "screen1"
                   # if weather_com_result is empty check TODO: FIXME
@@ -200,7 +202,7 @@ class Example(object):
                         
                 # 1. screen, dayInformation
                 # blank the screen
-                mytft.screen.fill(colourBlack)
+                lcd.screen.fill(colourBlack)
  
                 # Render the weather logo at 0,0
                 icon = installPathImgBig + (weather_com_result['current_conditions']['icon']) + ".png"
@@ -208,7 +210,7 @@ class Example(object):
                 w = logo.get_width() - 50
                 h = logo.get_height() - 50
                 logo = pygame.transform.scale(logo, (w,h)) 
-                mytft.screen.blit(logo, (0, 0))
+                lcd.screen.blit(logo, (0, 0))
  
                 # set the anchor for the current weather data text
                 textAnchorX = 260 # 310 war ok bei 328 Bild
@@ -217,62 +219,58 @@ class Example(object):
  
                 # add current weather data text artifacts to the screen
                 text_surface = font.render(today, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
                 text_surface = font.render(currTemp, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 # my code
                 # feeled temp
                 textAnchorY+=textYoffset
                 text_surface = font.render(currTempFeeling, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 # my code
                 textAnchorY+=textYoffset
                 text_surface = font.render(currWind, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
                 text_surface = font.render(currPress, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
                 text_surface = font.render(uv, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
                 text_surface = font.render(humid, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
  
                 
                 # wait between screen changes screenTimeOffset alias first betweenTime
                 pygame.display.update()
-                i = 0                
-                while i < screenTimeOffset:
-                  global betweenTime
-                  time.sleep(1)
-                  i = i + 1
-                  mytft.screen.fill(colourBlack)
-                  pygame.display.update()
-                  blub = Example()
-                  blub.showClock()
-                  pygame.display.update() 
-                  #time.sleep(screenTimeOffset)
-                  
-                betweenTime+=screenTimeOffset
+                
+                # wait
+                time.sleep(screenTimeOffset)
+                betweenTime += screenTimeOffset
+               
+                # blank the screen after screenTimeOffset
+                lcd.screen.fill(colourBlack)
+                pygame.display.update()
+                
                 
                 # 2. screen
                 # state = screen2
                 # blank the screen
-                mytft.screen.fill(colourBlack)
+                lcd.screen.fill(colourBlack)
                 pygame.display.update()
                 
                 # set X axis text anchor for the forecast text
                 textAnchorX = 0
                 textXoffset = 75 #100
                 textAnchorY = 10
-                #pygame.draw.line(mytft.screen.get_surface(), colourWhite, (50,10), (450,10),4)
+                #pygame.draw.line(lcd.screen.get_surface(), colourWhite, (50,10), (450,10),4)
 
                 # add summy of the values in one row
                 for i in range(0,5):
                   text_surface = fontS2.render(forecastDesc[i], True, colourWhite)
-                  mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                  lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                   textAnchorY+=textYoffset
                   
                 textAnchorX+=70
@@ -281,26 +279,26 @@ class Example(object):
                 for i in range(0, 5):
                     textAnchorY = 10
                     text_surface = fontS2.render(forecastDays[i], True, colourWhite)
-                    mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     textAnchorY+=textYoffset
                     text_surface = fontS2.render(forecaseHighs[i], True, colourWhite)
-                    mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     textAnchorY+=textYoffset
                     text_surface = fontS2.render(forecaseLows[i], True, colourWhite)
-                    mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     textAnchorY+=textYoffset
                     #text_surface = fontS2.render(forecastPrecips[i], True, colourWhite)
-                    #mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     #textAnchorY+=textYoffset
                     #text_surface = fontS2.render(forecastWinds[i], True, colourWhite)
-                    #mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     #textAnchorX+=textXoffset
                     try:
                       logo = pygame.image.load(forecastIcons[i]).convert()
                       w = logo.get_width()
                       h = logo.get_height()
                       logo = pygame.transform.scale(logo, (w,h)) 
-                      mytft.screen.blit(logo, (textAnchorX, textAnchorY))
+                      lcd.screen.blit(logo, (textAnchorX, textAnchorY))
                       textAnchorX+=textXoffset
                     except pygame.error as message:
                       logging.warn(forecastIcons)
@@ -316,13 +314,13 @@ class Example(object):
                 textAnchorY = 220
                 textAnchorX = 10
                 text_surface = fontS2.render(todayDesc, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 
                 # update when information
                 textAnchorY+=textYoffset
-                updated = time.strftime("%H:%M:%S")
+                updated = time.strftime("%H:%M") #time.strftime("%H:%M:%S")
                 text_surface = fontS2.render(updated, True, colourWhite)
-                mytft.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 
                 # update screen with forecast text
                 pygame.display.update()
@@ -332,18 +330,31 @@ class Example(object):
                 betweenTime += screenTimeOffset
                
                 # blank the screen after screenTimeOffset
-                mytft.screen.fill(colourBlack)
+                lcd.screen.fill(colourBlack)
                 pygame.display.update()
-                #time.sleep(3)
                
                 # Wait
                 #time.sleep(updateRate)
+                
+                #i = 0                
+                #while i < screenTimeOffset:
+                  #global betweenTime
+                  #time.sleep(1)
+                  #i = i + 1
+                  #lcd.screen.fill(colourBlack)
+                  #pygame.display.update()
+                  #blub = PygameWeather()
+                  #self.showClock()
+                  #pygame.display.update() 
+                  
+                  
+                #betweenTime+=screenTimeOffset
                 
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG, filename="logfile", filemode="a+", format="%(asctime)s %(message)s")
   try: 
-    Example().run()
+    PygameWeather().run()
   except Exception as e:
     #print "\n except: %s" % (e,)
     logging.warn(e)
