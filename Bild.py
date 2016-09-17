@@ -248,7 +248,8 @@ class Example(object):
                   global betweenTime
                   time.sleep(1)
                   i = i + 1
-                  showClock()
+                  blub = Example()
+                  blub.showClock()
                   pygame.display.update() 
                   #time.sleep(screenTimeOffset)
                   
