@@ -96,6 +96,11 @@ w = 0
 class PygameWeather(object): 
     # class variable shared by all instances
     variabel_0 = 'test'
+    # more vars
+    
+    # def evaluateInformation()
+    # def updateScreen1
+    # def updateScreen2
     
     # call weather server, if no connection or error return old data
     def callServer( self, mydict ):
@@ -128,7 +133,6 @@ class PygameWeather(object):
        global forecastIcons
        quit = False
        while not quit:
-                global blub
                 for event in pygame.event.get():
                     if event.type == QUIT: #sth wrong here if pygame.QUIT
                       sys.exit()
@@ -141,10 +145,8 @@ class PygameWeather(object):
                       print "Escape Button was pressed."
                       return
                
-                #FIXME: every iteration will be generated an new Object that memory bad...
                 # retrieve data from weather.com and keep old values if no connection
                 if state == "initial":
-                  blub = PygameWeather()
                   weather_com_result = self.callServer( weather_com_result )
                   state = "screen1"
                   # if weather_com_result is empty check TODO: FIXME
@@ -153,7 +155,6 @@ class PygameWeather(object):
                 if betweenTime >= updateRate:
                   betweenTime = 0
                   state = "network"
-                  blub = PygameWeather()
                   logging.info("1 hour is over, Calling server...")
                   weather_com_result = self.callServer( weather_com_result )
                   logging.info("Calling server successful")
@@ -306,6 +307,7 @@ class PygameWeather(object):
                       str = str + " height: {}" .format(h)
                       logging.warn(str)
                       logging.warn(message)
+                      textAnchorX+=textXoffset
                       #w = logo.get_width() - 150
                       #h = logo.get_height() - 150
                 
@@ -343,7 +345,6 @@ class PygameWeather(object):
                   #i = i + 1
                   #lcd.screen.fill(colourBlack)
                   #pygame.display.update()
-                  #blub = PygameWeather()
                   #self.showClock()
                   #pygame.display.update() 
                   
