@@ -71,9 +71,7 @@ pygame.mouse.set_visible(False)
 colourWhite = (255, 255, 255)
 colourBlack = (0, 0, 0)
  
-# update interval
-updateRate = 3600 # seconds, for server call
-betweenTime = 20 # seconds, befor screen switching
+
 
 screenTimeOffset = 20
 
@@ -94,8 +92,12 @@ w = 0
  
 # starting class
 class PygameWeather(object): 
-    # class variable shared by all instances
-    variabel_0 = 'test'
+    """This class uses pygame and show on console Weatherinformation graphicaly"""
+    
+    # class variable not shared by all instances    
+    # update interval
+    updateRate = 3600 # seconds, for server call
+    betweenTime = 20 # seconds, befor screen switching
     # more vars
     
     # def evaluateInformation()
@@ -123,8 +125,8 @@ class PygameWeather(object):
     #todo: seperate code in state-machine in run and put other stuff in seperate functions
     # implement run method
     def run(self):
-       global betweenTime
-       global updateRate
+       #global betweenTime
+       #global updateRate
        global screenTimeOffset
        global weather_com_result
        global state
@@ -152,8 +154,8 @@ class PygameWeather(object):
                   # if weather_com_result is empty check TODO: FIXME
                   # run alternative data, infunction
                 
-                if betweenTime >= updateRate:
-                  betweenTime = 0
+                if self.betweenTime >= self.updateRate:
+                  self.betweenTime = 0
                   state = "network"
                   logging.info("1 hour is over, Calling server...")
                   weather_com_result = self.callServer( weather_com_result )
@@ -249,7 +251,7 @@ class PygameWeather(object):
                 
                 # wait
                 time.sleep(screenTimeOffset)
-                betweenTime += screenTimeOffset
+                self.betweenTime += screenTimeOffset
                
                 # blank the screen after screenTimeOffset
                 lcd.screen.fill(colourBlack)
@@ -329,7 +331,7 @@ class PygameWeather(object):
                 
                 # wait
                 time.sleep(screenTimeOffset)
-                betweenTime += screenTimeOffset
+                self.betweenTime += screenTimeOffset
                
                 # blank the screen after screenTimeOffset
                 lcd.screen.fill(colourBlack)
