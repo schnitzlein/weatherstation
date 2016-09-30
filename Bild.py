@@ -97,6 +97,27 @@ class PygameWeather(object):
     h = 0
     w = 0
     
+    # today variables
+    today = ""
+    windSpeed = ""
+    currWind = ""
+    currTemp = ""
+    currTempFeeling = ""
+    currPress = ""
+    uv = ""
+    todayDesc = ""
+    humid = ""
+    
+    # forecast variables
+    forecastDesc = ""
+    # forecast data
+    forecastDays = {}
+    forecaseHighs = {}
+    forecaseLows = {}
+    forecastPrecips = {}
+    forecastWinds = {}
+    forecastIcons = {}
+    
     #TODO: add all local vars here add self. in front of all local vars
     
     # def evaluateInformation() # put the var assignment here
@@ -130,13 +151,6 @@ class PygameWeather(object):
     #todo: seperate code in state-machine in run and put other stuff in seperate functions
     # implement run method
     def run(self):
-       #global betweenTime
-       #global updateRate
-       #global screenTimeOffset
-       #global weather_com_result
-       #global state
-       #global w
-       #global h
        global forecastIcons
        quit = False
        while not quit:
@@ -162,7 +176,7 @@ class PygameWeather(object):
                 if self.betweenTime >= self.updateRate:
                   self.betweenTime = 0
                   self.state = "network"
-                  logging.info(updateRate + " seconds is over, Calling server...")
+                  logging.info(format(self.updateRate) + " seconds is over, Calling server...")
                   self.weather_com_result = self.callServer( self.weather_com_result )
                   logging.info("Calling server successful")
                   self.state = "screen1"
@@ -172,40 +186,33 @@ class PygameWeather(object):
                 
                 
                 # extract current data for today
-                today = self.weather_com_result['forecasts'][0]['day_of_week'][0:3] + " " \
+                self.today = self.weather_com_result['forecasts'][0]['day_of_week'][0:3] + " " \
                     + self.weather_com_result['forecasts'][0]['date'][4:] + " " \
                     + self.weather_com_result['forecasts'][0]['date'][:3]
-                windSpeed = self.weather_com_result['current_conditions']['wind']['speed']
-                currWind = "{}km/h ".format(windSpeed) + self.weather_com_result['current_conditions']['wind']['text']  
-                currTemp = self.weather_com_result['current_conditions']['temperature'] + u'\N{DEGREE SIGN}' + "C"
-                currPress = self.weather_com_result['current_conditions']['barometer']['reading'][:-3] + "mb"
-                uv = "UV {}".format(self.weather_com_result['current_conditions']['uv']['text'])
-                humid = "Hum {}%".format(self.weather_com_result['current_conditions']['humidity'])
-                currTempFeeling = "(" + self.weather_com_result['current_conditions']['feels_like'] + u'\N{DEGREE SIGN}' + "C)"
-                todayDesc = "It is " + self.weather_com_result['current_conditions']['text'].lower() + " today."
+                self.windSpeed = self.weather_com_result['current_conditions']['wind']['speed']
+                self.currWind = "{}km/h ".format(self.windSpeed) + self.weather_com_result['current_conditions']['wind']['text']  
+                self.currTemp = self.weather_com_result['current_conditions']['temperature'] + u'\N{DEGREE SIGN}' + "C"
+                self.currPress = self.weather_com_result['current_conditions']['barometer']['reading'][:-3] + "mb"
+                self.uv = "UV {}".format(self.weather_com_result['current_conditions']['uv']['text'])
+                self.humid = "Hum {}%".format(self.weather_com_result['current_conditions']['humidity'])
+                self.currTempFeeling = "(" + self.weather_com_result['current_conditions']['feels_like'] + u'\N{DEGREE SIGN}' + "C)"
+                self.todayDesc = "It is " + self.weather_com_result['current_conditions']['text'].lower() + " today."
  
                 # summary and description of forecast data                
-                forecastDesc = ["Day", "Max", "Min", "   ", "   "] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
+                self.forecastDesc = ["Day", "Max", "Min", "   ", "   "] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
                 
-                # extract forecast data
-                forecastDays = {}
-                forecaseHighs = {}
-                forecaseLows = {}
-                forecastPrecips = {}
-                forecastWinds = {}
-                forecastIcons = {}
- 
+                
                 for i in range(0, 5):
                     if not(self.weather_com_result['forecasts'][i]):
                         break
                         
-                    forecastDays[i] = self.weather_com_result['forecasts'][i]['day_of_week'][0:3]
-                    forecaseHighs[i] = self.weather_com_result['forecasts'][i]['high'] + u'\N{DEGREE SIGN}' + "C"
-                    forecaseLows[i] = self.weather_com_result['forecasts'][i]['low'] + u'\N{DEGREE SIGN}' + "C"
-                    forecastPrecips[i] = self.weather_com_result['forecasts'][i]['day']['chance_precip'] + "%"
-                    forecastWinds[i] = self.weather_com_result['forecasts'][i]['day']['wind']['speed'] + \
+                    self.forecastDays[i] = self.weather_com_result['forecasts'][i]['day_of_week'][0:3]
+                    self.forecaseHighs[i] = self.weather_com_result['forecasts'][i]['high'] + u'\N{DEGREE SIGN}' + "C"
+                    self.forecaseLows[i] = self.weather_com_result['forecasts'][i]['low'] + u'\N{DEGREE SIGN}' + "C"
+                    self.forecastPrecips[i] = self.weather_com_result['forecasts'][i]['day']['chance_precip'] + "%"
+                    self.forecastWinds[i] = self.weather_com_result['forecasts'][i]['day']['wind']['speed'] + \
                         self.weather_com_result['forecasts'][i]['day']['wind']['text']
-                    forecastIcons[i] = installPathImgSmall + (self.weather_com_result['forecasts'][i]['day']['icon']) + ".png"
+                    self.forecastIcons[i] = installPathImgSmall + (self.weather_com_result['forecasts'][i]['day']['icon']) + ".png"
                 
                         
                 # 1. screen, dayInformation
@@ -226,25 +233,25 @@ class PygameWeather(object):
                 textYoffset = 40
  
                 # add current weather data text artifacts to the screen
-                text_surface = font.render(today, True, colourWhite)
+                text_surface = font.render(self.today, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
-                text_surface = font.render(currTemp, True, colourWhite)
+                text_surface = font.render(self.currTemp, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
-                text_surface = font.render(currTempFeeling, True, colourWhite)
+                text_surface = font.render(self.currTempFeeling, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
-                text_surface = font.render(currWind, True, colourWhite)
+                text_surface = font.render(self.currWind, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
-                text_surface = font.render(currPress, True, colourWhite)
+                text_surface = font.render(self.currPress, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
-                text_surface = font.render(uv, True, colourWhite)
+                text_surface = font.render(self.uv, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
-                text_surface = font.render(humid, True, colourWhite)
+                text_surface = font.render(self.humid, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
  
                 
@@ -274,28 +281,29 @@ class PygameWeather(object):
 
                 # add summy of the values in one row
                 for i in range(0,5):
-                  text_surface = fontS2.render(forecastDesc[i], True, colourWhite)
+                  text_surface = fontS2.render(self.forecastDesc[i], True, colourWhite)
                   lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                   textAnchorY+=textYoffset
                   
                 textAnchorX+=80
+                textXoffset = 100
  
                 # add each days forecast text + icon
                 for i in range(1, 5):
                     textAnchorY = 10
-                    text_surface = fontS2.render(forecastDays[i], True, colourWhite)
+                    text_surface = fontS2.render(self.forecastDays[i], True, colourWhite)
                     lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     textAnchorY+=textYoffset
-                    text_surface = fontS2.render(forecaseHighs[i], True, colourWhite)
+                    text_surface = fontS2.render(self.forecaseHighs[i], True, colourWhite)
                     lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     textAnchorY+=textYoffset
-                    text_surface = fontS2.render(forecaseLows[i], True, colourWhite)
+                    text_surface = fontS2.render(self.forecaseLows[i], True, colourWhite)
                     lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     textAnchorY+=textYoffset
-                    #text_surface = fontS2.render(forecastPrecips[i], True, colourWhite)
+                    #text_surface = fontS2.render(self.forecastPrecips[i], True, colourWhite)
                     #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     #textAnchorY+=textYoffset
-                    #text_surface = fontS2.render(forecastWinds[i], True, colourWhite)
+                    #text_surface = fontS2.render(self.forecastWinds[i], True, colourWhite)
                     #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     #textAnchorX+=textXoffset
                     try:
@@ -306,7 +314,7 @@ class PygameWeather(object):
                       lcd.screen.blit(logo, (textAnchorX, textAnchorY))
                       textAnchorX+=textXoffset
                     except pygame.error as message:
-                      #logging.warn(forecastIcons) # to see which icons are missing or is empty json
+                      logging.warn(forecastIcons) # to see which icons are missing or is empty json
                       str = "err width: {}" .format(self.w)
                       str = str + " height: {}" .format(h)
                       logging.warn(str)
@@ -318,7 +326,7 @@ class PygameWeather(object):
                 # today desc under the table
                 textAnchorY = 220
                 textAnchorX = 10
-                text_surface = fontS2.render(todayDesc, True, colourWhite)
+                text_surface = fontS2.render(self.todayDesc, True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 
                 # update when information
