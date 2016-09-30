@@ -110,7 +110,7 @@ class PygameWeather(object):
     
     # forecast variables
     # summary and description of forecast data                
-    self.forecastDesc = ["Day", "Max", "Min", "   ", "   "] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
+    forecastDesc = ["Day", "Max", "Min", "   ", "   "] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
     # forecast data
     forecastDays = {}
     forecaseHighs = {}
