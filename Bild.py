@@ -152,7 +152,7 @@ class PygameWeather(object):
     #todo: seperate code in state-machine in run and put other stuff in seperate functions
     # implement run method
     def run(self):
-       global forecastIcons
+       #global forecastIcons
        quit = False
        while not quit:
                 for event in pygame.event.get():
@@ -308,14 +308,14 @@ class PygameWeather(object):
                     #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     #textAnchorX+=textXoffset
                     try:
-                      logo = pygame.image.load(forecastIcons[i]).convert()
+                      logo = pygame.image.load(self.forecastIcons[i]).convert()
                       self.w = logo.get_width()
                       self.h = logo.get_height()
                       logo = pygame.transform.scale(logo, (self.w,self.h)) 
                       lcd.screen.blit(logo, (textAnchorX, textAnchorY))
                       textAnchorX+=textXoffset
                     except pygame.error as message:
-                      logging.warn(forecastIcons) # to see which icons are missing or is empty json
+                      logging.warn(self.forecastIcons) # to see which icons are missing or is empty json
                       str = "err width: {}" .format(self.w)
                       str = str + " height: {}" .format(h)
                       logging.warn(str)
