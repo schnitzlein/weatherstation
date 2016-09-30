@@ -109,8 +109,7 @@ class PygameWeather(object):
     humid = ""
     
     # forecast variables
-    # summary and description of forecast data                
-    forecastDesc = ["Day", "Max", "Min", "   ", "   "] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
+    forecastDesc = ""
     # forecast data
     forecastDays = {}
     forecaseHighs = {}
@@ -119,58 +118,11 @@ class PygameWeather(object):
     forecastWinds = {}
     forecastIcons = {}
     
-    #TODO: add methods
+    #TODO: add all local vars here add self. in front of all local vars
     
-    # put the var assignment here
-    def evaluateInformation(self):
-        # retrieve data from weather.com and keep old values if no connection
-        if self.state == "initial":
-            self.weather_com_result = self.callServer( self.weather_com_result )
-            self.state = "screen1"
-                  # if weather_com_result is empty check TODO: FIXME
-                  # run alternative data, infunction
-                
-        if self.betweenTime >= self.updateRate:
-            self.betweenTime = 0
-            self.state = "network"
-            logging.info(format(self.updateRate) + " seconds is over, Calling server...")
-            self.weather_com_result = self.callServer( self.weather_com_result )
-            logging.info("Calling server successful")
-            self.state = "screen1"
-                  # if weather_com_result is empty check TODO: FIXME
-                  # run alternative data
-                #
-                
-                
-        # extract current data for today
-        self.today = self.weather_com_result['forecasts'][0]['day_of_week'][0:3] + " " \
-            + self.weather_com_result['forecasts'][0]['date'][4:] + " " \
-            + self.weather_com_result['forecasts'][0]['date'][:3]
-        self.windSpeed = self.weather_com_result['current_conditions']['wind']['speed']
-        self.currWind = "{}km/h ".format(self.windSpeed) + self.weather_com_result['current_conditions']['wind']['text']  
-        self.currTemp = self.weather_com_result['current_conditions']['temperature'] + u'\N{DEGREE SIGN}' + "C"
-        self.currPress = self.weather_com_result['current_conditions']['barometer']['reading'][:-3] + "mb"
-        self.uv = "UV {}".format(self.weather_com_result['current_conditions']['uv']['text'])
-        self.humid = "Hum {}%".format(self.weather_com_result['current_conditions']['humidity'])
-        self.currTempFeeling = "(" + self.weather_com_result['current_conditions']['feels_like'] + u'\N{DEGREE SIGN}' + "C)"
-        self.todayDesc = "It is " + self.weather_com_result['current_conditions']['text'].lower() + " today."
-        
-        # extract forecast data
-        for i in range(0, 5):
-            if not(self.weather_com_result['forecasts'][i]):
-                break
-                        
-                self.forecastDays[i] = self.weather_com_result['forecasts'][i]['day_of_week'][0:3]
-                self.forecaseHighs[i] = self.weather_com_result['forecasts'][i]['high'] + u'\N{DEGREE SIGN}' + "C"
-                self.forecaseLows[i] = self.weather_com_result['forecasts'][i]['low'] + u'\N{DEGREE SIGN}' + "C"
-                self.forecastPrecips[i] = self.weather_com_result['forecasts'][i]['day']['chance_precip'] + "%"
-                self.forecastWinds[i] = self.weather_com_result['forecasts'][i]['day']['wind']['speed'] + \
-                    self.weather_com_result['forecasts'][i]['day']['wind']['text']
-                self.forecastIcons[i] = installPathImgSmall + (self.weather_com_result['forecasts'][i]['day']['icon']) + ".png"
-    # def evaluateInformation(self): END
-        
-    # def updateScreen1(self):         # put graphical change for screen1 here
-    # def updateScreen2(self):         # put graphical change for screen2 here
+    # def evaluateInformation() # put the var assignment here
+    # def updateScreen1         # put graphical change for screen1 here
+    # def updateScreen2         # put graphical change for screen2 here
     
     # call weather server, if no connection or error return old data
     def callServer( self, mydict ):
@@ -179,6 +131,7 @@ class PygameWeather(object):
        #check if the dictionary has error keep old data; else return new data
        if self.weather_com_result.has_key('error'):
            logging.info(self.weather_com_result['error'])
+           logging.info("the server send broken data, pywapi return there is a problem with some .json tag")
            return old_values
        else:
            return self.weather_com_result
@@ -214,9 +167,55 @@ class PygameWeather(object):
                       print "Escape Button was pressed."
                       return
                
-                # evaluate Information from server json file 
-                self.evaluateInformation()
+                # retrieve data from weather.com and keep old values if no connection
+                if self.state == "initial":
+                  self.weather_com_result = self.callServer( self.weather_com_result )
+                  self.state = "screen1"
+                  # if weather_com_result is empty check TODO: FIXME
+                  # run alternative data, infunction
+                
+                if self.betweenTime >= self.updateRate:
+                  self.betweenTime = 0
+                  self.state = "network"
+                  logging.info(format(self.updateRate) + " seconds is over, Calling server...")
+                  self.weather_com_result = self.callServer( self.weather_com_result )
+                  logging.info("Calling server successful")
+                  self.state = "screen1"
+                  # if weather_com_result is empty check TODO: FIXME
+                  # run alternative data
+                #
+                
+                
+                # extract current data for today
+                self.today = self.weather_com_result['forecasts'][0]['day_of_week'][0:3] + " " \
+                    + self.weather_com_result['forecasts'][0]['date'][4:] + " " \
+                    + self.weather_com_result['forecasts'][0]['date'][:3]
+                self.windSpeed = self.weather_com_result['current_conditions']['wind']['speed']
+                self.currWind = "{}km/h ".format(self.windSpeed) + self.weather_com_result['current_conditions']['wind']['text']  
+                self.currTemp = self.weather_com_result['current_conditions']['temperature'] + u'\N{DEGREE SIGN}' + "C"
+                self.currPress = self.weather_com_result['current_conditions']['barometer']['reading'][:-3] + "mb"
+                self.uv = "UV {}".format(self.weather_com_result['current_conditions']['uv']['text'])
+                self.humid = "Hum {}%".format(self.weather_com_result['current_conditions']['humidity'])
+                self.currTempFeeling = "(" + self.weather_com_result['current_conditions']['feels_like'] + u'\N{DEGREE SIGN}' + "C)"
+                self.todayDesc = "It is " + self.weather_com_result['current_conditions']['text'].lower() + " today."
  
+                # summary and description of forecast data                
+                self.forecastDesc = ["Day", "Max", "Min", "   ", "   "] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
+                
+                
+                for i in range(0, 5):
+                    if not(self.weather_com_result['forecasts'][i]):
+                        break
+                        
+                    self.forecastDays[i] = self.weather_com_result['forecasts'][i]['day_of_week'][0:3]
+                    self.forecaseHighs[i] = self.weather_com_result['forecasts'][i]['high'] + u'\N{DEGREE SIGN}' + "C"
+                    self.forecaseLows[i] = self.weather_com_result['forecasts'][i]['low'] + u'\N{DEGREE SIGN}' + "C"
+                    self.forecastPrecips[i] = self.weather_com_result['forecasts'][i]['day']['chance_precip'] + "%"
+                    self.forecastWinds[i] = self.weather_com_result['forecasts'][i]['day']['wind']['speed'] + \
+                        self.weather_com_result['forecasts'][i]['day']['wind']['text']
+                    self.forecastIcons[i] = installPathImgSmall + (self.weather_com_result['forecasts'][i]['day']['icon']) + ".png"
+                
+                        
                 # 1. screen, dayInformation
                 # blank the screen
                 lcd.screen.fill(colourBlack)
