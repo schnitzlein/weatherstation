@@ -186,19 +186,19 @@ class PygameWeather(object):
                 #
                 
                 # screen3 beginn
-                if time.strftime("%H:%M") >= '19:00' and time.strftime("%H:%M") <= '19:30':
+                if (time.strftime("%H:%M") >= '19:00' and time.strftime("%H:%M") <= '19:30') or (time.strftime("%d/%m") == '05/12'):
                     self.state = "screen3"
                     lcd.screen.fill(colourBlack)
                     icon = installPathImgBig + "easteregg.png"
                     logo = pygame.image.load(icon).convert()
-                    self.w = logo.get_width()
-                    self.h = logo.get_height()
+                    self.w = logo.get_width() - 30
+                    self.h = logo.get_height() - 30
                     logo = pygame.transform.scale(logo, (self.w,self.h)) 
                     lcd.screen.blit(logo, (0, 0))
                     textAnchorX = 310 
                     textAnchorY = 5
                     textYoffset = 40
-                    text_surface = font.render("... Pause", True, colourWhite)
+                    text_surface = font.render("Pause ...", True, colourWhite)
                     lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                     pygame.display.update()
                     time.sleep(self.screenTimeOffset)
