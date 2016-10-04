@@ -195,15 +195,14 @@ class PygameWeather(object):
                     self.h = logo.get_height()
                     logo = pygame.transform.scale(logo, (self.w,self.h)) 
                     lcd.screen.blit(logo, (0, 0))
- 
-                textAnchorX = 310 
-                textAnchorY = 5
-                textYoffset = 40
-                text_surface = font.render("mach mal Pause", True, colourWhite)
-                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                pygame.display.update()
-                time.sleep(self.screenTimeOffset)
-                self.betweenTime += self.screenTimeOffset
+                    textAnchorX = 310 
+                    textAnchorY = 5
+                    textYoffset = 40
+                    text_surface = font.render("... Pause", True, colourWhite)
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    pygame.display.update()
+                    time.sleep(self.screenTimeOffset)
+                    self.betweenTime += self.screenTimeOffset
                 # screen3 ends
                 
                 
