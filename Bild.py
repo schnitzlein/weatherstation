@@ -201,6 +201,9 @@ class PygameWeather(object):
                 textYoffset = 40
                 text_surface = font.render("mach mal Pause", True, colourWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                pygame.display.update()
+                time.sleep(self.screenTimeOffset)
+                self.betweenTime += self.screenTimeOffset
                 # screen3 ends
                 
                 
