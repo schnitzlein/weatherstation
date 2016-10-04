@@ -91,7 +91,7 @@ class PygameWeather(object):
     betweenTime = 20      # seconds, befor screen switching (pause time) obsolet
     screenTimeOffset = 20 # same Time like betweenTime, was intentionally the time the screens are show 
     # more vars
-    states = ["initial", "screen1", "screen2", "network"]
+    states = ["initial", "screen1", "screen2", "screen3", "network"]
     state = "initial"
     weather_com_result = {}
     h = 0
@@ -184,6 +184,24 @@ class PygameWeather(object):
                   # if weather_com_result is empty check TODO: FIXME
                   # run alternative data
                 #
+                
+                # screen3 beginn
+                if time.strftime("%H:%M") >= '19:00' and time.strftime("%H:%M") <= '19:30':
+                    self.state = "screen3"
+                    lcd.screen.fill(colourBlack)
+                    icon = installPathImgBig + "easteregg.png"
+                    logo = pygame.image.load(icon).convert()
+                    self.w = logo.get_width()
+                    self.h = logo.get_height()
+                    logo = pygame.transform.scale(logo, (self.w,self.h)) 
+                    lcd.screen.blit(logo, (0, 0))
+ 
+                textAnchorX = 310 
+                textAnchorY = 5
+                textYoffset = 40
+                text_surface = font.render("mach mal Pause", True, colourWhite)
+                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                # screen3 ends
                 
                 
                 # extract current data for today
