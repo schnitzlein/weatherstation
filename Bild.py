@@ -87,7 +87,7 @@ class PygameWeather(object):
     """This class uses pygame and show on console Weatherinformation graphicaly"""
     
     # class variable not shared by all instances    
-    updateRate = 3600     # seconds, for server call # update interval
+    updateRate = 7200     # seconds, for server call # update interval
     betweenTime = 20      # seconds, befor screen switching (pause time) obsolet
     screenTimeOffset = 20 # same Time like betweenTime, was intentionally the time the screens are show 
     # more vars
@@ -335,10 +335,10 @@ class PygameWeather(object):
                       lcd.screen.blit(logo, (textAnchorX, textAnchorY))
                       textAnchorX+=textXoffset
                     except pygame.error as message:
-                      logging.warn(self.forecastIcons) # to see which icons are missing or is empty json
-                      str = "err width: {}" .format(self.w)
-                      str = str + " height: {}" .format(h)
-                      logging.warn(str)
+                      #logging.warn(self.forecastIcons) # to see which icons are missing or is empty json
+                      #str = "err width: {}" .format(self.w)
+                      #str = str + " height: {}" .format(h)
+                      #logging.warn(str)
                       logging.warn(message)
                       textAnchorX+=textXoffset
                       
