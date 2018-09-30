@@ -125,8 +125,8 @@ class PygameWeather(object):
        try:
            icon = self.installPathImgBig + "easteregg_2.png"
            logo = pygame.image.load(icon).convert()
-           self.w = logo.get_width() - 256
-           self.h = logo.get_height() - 69
+           self.w = logo.get_width() - 176
+           self.h = logo.get_height() - 49
            logo = pygame.transform.scale(logo, (self.w,self.h))
            self.lcd.screen.blit(logo, (0, 0))
            textAnchorX = 310
@@ -234,8 +234,8 @@ class PygameWeather(object):
        text_surface = self.fontS2.render(updated, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
-    def screen3(self, next_state):
-       self.state = next_state
+    def screen3(self):
+       self.state = "state1"
        icon = self.installPathImgBig + "easteregg.png"
        logo = pygame.image.load(icon).convert()
        self.w = logo.get_width() - 30
