@@ -59,17 +59,15 @@ class PygameWeather(object):
 
     # see a clock with secounds, just call it in loop or as many times as you need it, after it clear the screen !
     def showClock(self):
+        #TODO:show in random position, activate if motion sensor register motion
         # clear screen and update
-        logging.debug("I am here")
-        lcd.screen.fill(self.colourBlack)
+        self.lcd.screen.fill(self.colourBlack)
         pygame.display.update()
-        logging.debug("I am updated")
         # show the clock @ (10,260), uodate the screen and wait 1 second
         updated = time.strftime("%H:%M:%S")
         text_surface = self.fontS2.render(updated, True, self.colourWhite)
-        lcd.screen.blit(text_surface, (10, 260))
+        self.lcd.screen.blit(text_surface, (10, 260))
         pygame.display.update()
-        logging.debug("I am should show now a running clock")
         time.sleep(1)
 
     def callServer(self):
@@ -127,8 +125,8 @@ class PygameWeather(object):
        try:
            icon = self.installPathImgBig + "easteregg_2.png"
            logo = pygame.image.load(icon).convert()
-           self.w = logo.get_width() - 300
-           self.h = logo.get_height() - 300
+           self.w = logo.get_width() - 256
+           self.h = logo.get_height() - 69
            logo = pygame.transform.scale(logo, (self.w,self.h))
            self.lcd.screen.blit(logo, (0, 0))
            textAnchorX = 310
@@ -268,11 +266,11 @@ class PygameWeather(object):
             # show screen
             self.progressScreen()
             self.showClock()
-            # retrieve data from weather.com and keep old values if no connection
-            #if self.state == "initial":
-            #  self.weather_com_result = self.callServer( self.weather_com_result )
-            #  self.state = "screen1"
+            if self.betweenTime >= self.updateRate:
+              self.betweenTime = 0
+              self.state = "network"
             #  self.updateScreen(self.screen1)
+            self.updateScreen(self.screen3("state1"))
 
 
 if __name__ == '__main__':
