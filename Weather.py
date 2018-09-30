@@ -6,21 +6,6 @@ import pygame
 import logging
 import requests
 
-# Constants
-pygame.mouse.set_visible(False)
-fontpath = pygame.font.match_font('dejavusansmono')
-font = pygame.font.Font(fontpath, 36)
-fontS2 = pygame.font.Font(fontpath, 28)
-fontSm = pygame.font.Font(fontpath, 18)
-colourWhite = (255, 255, 255)
-colourBlack = (0, 0, 0)
-
-#TODO: add auto installer, auto config, with python setup tools, and read config ...
-# installPath is like "/home/username/installfolder/img/big" ... ".../small"
-installPathImgBig = "/home/pi/weatherstation/img/big/"
-installPathImgSmall = "/home/pi/weatherstation/img/small/"
-# Constants
-
 class PygameWeather(object):
     """This class uses pygame and show on console Weatherinformation graphicaly"""
 
@@ -57,6 +42,19 @@ class PygameWeather(object):
         self.forecastIcons = {}
         # Create an instance of the PyLcd class
         self.lcd = lcd_screen()
+        # Constants
+        pygame.mouse.set_visible(False)
+        fontpath = pygame.font.match_font('dejavusansmono')
+        font = pygame.font.Font(fontpath, 36)
+        fontS2 = pygame.font.Font(fontpath, 28)
+        fontSm = pygame.font.Font(fontpath, 18)
+        colourWhite = (255, 255, 255)
+        colourBlack = (0, 0, 0)
+        #TODO: add auto installer, auto config, with python setup tools, and read config ... 
+        # installPath is like "/home/username/installfolder/img/big" ... ".../small"
+        installPathImgBig = "/home/pi/weatherstation/img/big/"
+        installPathImgSmall = "/home/pi/weatherstation/img/small/"
+        # Constants
 
     # see a clock with secounds, just call it in loop or as many times as you need it, after it clear the screen !
     def showClock(self):
@@ -111,7 +109,7 @@ class PygameWeather(object):
         # blank the screen after screenTimeOffset
         self.lcd.screen.fill(colourBlack)
 
-   def progressScreen(self):
+    def progressScreen(self):
        # subroutine
        # timeout = 5
        # sleep(1)
@@ -138,7 +136,7 @@ class PygameWeather(object):
        # wait
        #time.sleep(timeout)
 
-   def screen1(self):
+    def screen1(self):
        # Render the weather logo at 0,0
        icon = installPathImgBig + (self.weather_com_result['current_conditions']['icon']) + ".png"
        logo = pygame.image.load(icon).convert()
@@ -172,7 +170,7 @@ class PygameWeather(object):
        text_surface = font.render(self.humid, True, colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
-   def screen2(self):
+    def screen2(self):
        # set X axis text anchor for the forecast text
        textAnchorX = 0
        textXoffset = 75 #100
@@ -232,7 +230,7 @@ class PygameWeather(object):
        text_surface = fontS2.render(updated, True, colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
-   def screen3(self, next_state):
+    def screen3(self, next_state):
        self.state = next_state
        icon = installPathImgBig + "easteregg.png"
        logo = pygame.image.load(icon).convert()
@@ -246,21 +244,21 @@ class PygameWeather(object):
        text_surface = font.render("Pause ...", True, colourWhite)
        self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
-   def run(self):
-       #self.updateScreen(self.screen3, "screen3")
-       quit = False
-       while not quit:
-        for event in pygame.event.get():
-            if event.type == QUIT: #sth wrong here if pygame.QUIT
-              sys.exit()
-              quit = True
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
-              quit = True
-              logging.info("ESC Key was pressed")
+    def run(self):
+        #self.updateScreen(self.screen3, "screen3")
+        quit = False
+        while not quit:
+            for event in pygame.event.get():
+                if event.type == QUIT: #sth wrong here if pygame.QUIT
+                  sys.exit()
+                  quit = True
+                elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                  quit = True
+                  logging.info("ESC Key was pressed")
 
-            if quit is True:
-              print("Escape Button was pressed.")
-              return
+                if quit is True:
+                  print("Escape Button was pressed.")
+                  return
             self.progressScreen()
 
 if __name__ == '__main__':

@@ -12,8 +12,8 @@ class PyLcd :
         # http://www.karoltomala.com/blog/?p=679
         disp_no = os.getenv("DISPLAY")
         if disp_no:
-            print("I'm running under X display = {0}".format(disp_no))
-
+            print("I'm running under X Server. With display = {0}\nexit now.".format(disp_no))
+            exit(0)
         os.putenv('SDL_FBDEV', '/dev/fb1')
 
         # Select frame buffer driver
