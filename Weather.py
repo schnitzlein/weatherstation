@@ -263,5 +263,9 @@ class PygameWeather(object):
                 self.progressScreen()
 
 if __name__ == '__main__':
-    p_obj = PygameWeather()
-    # ...
+    logging.basicConfig(level=logging.DEBUG, filename="logfile", filemode="a+", format="%(asctime)s %(message)s")
+    try:
+       p_obj = PygameWeather()
+       p_obj.run()
+    except Exception as e:
+       logging.error(e)
