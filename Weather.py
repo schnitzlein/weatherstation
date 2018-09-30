@@ -263,13 +263,13 @@ class PygameWeather(object):
                    print("Escape Button was pressed.")
                    return
                 # show screen
-                self.progressScreen()
-
+                #self.progressScreen()
+                self.showClock()
                 # retrieve data from weather.com and keep old values if no connection
-                if self.state == "initial":
-                  self.weather_com_result = self.callServer( self.weather_com_result )
-                  self.state = "screen1"
-                  self.updateScreen(self.screen1)
+                #if self.state == "initial":
+                #  self.weather_com_result = self.callServer( self.weather_com_result )
+                #  self.state = "screen1"
+                #  self.updateScreen(self.screen1)
 
 
 if __name__ == '__main__':
