@@ -120,19 +120,22 @@ class PygameWeather(object):
        pygame.display.update()
        # load picture and show ...
        self.state = "initial"
-       icon = installPathImgBig + "easteregg_2.png"
-       logo = pygame.image.load(icon).convert()
-       self.w = logo.get_width() - 30
-       self.h = logo.get_height() - 30
-       logo = pygame.transform.scale(logo, (self.w,self.h))
-       self.lcd.screen.blit(logo, (0, 0))
-       textAnchorX = 310
-       textAnchorY = 5
-       textYoffset = 40
-       text_surface = font.render("Loading ...", True, colourWhite)
-       self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-       pygame.display.update()
-       time.sleep(self.screenTimeOffset)
+       try:
+           icon = installPathImgBig + "easteregg_2.png"
+           logo = pygame.image.load(icon).convert()
+           self.w = logo.get_width() - 30
+           self.h = logo.get_height() - 30
+           logo = pygame.transform.scale(logo, (self.w,self.h))
+           self.lcd.screen.blit(logo, (0, 0))
+           textAnchorX = 310
+           textAnchorY = 5
+           textYoffset = 40
+           text_surface = font.render("Loading ...", True, colourWhite)
+           self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+           pygame.display.update()
+           time.sleep(self.screenTimeOffset)
+       except Exception as e:
+           logging.warn(e)
        # wait
        #time.sleep(timeout)
 
@@ -252,7 +255,7 @@ class PygameWeather(object):
                 if event.type == pygame.QUIT:
                    sys.exit()
                    quit = True
-                elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                    quit = True
                    logging.info("ESC Key was pressed")
 
@@ -261,6 +264,13 @@ class PygameWeather(object):
                    return
                 # show screen
                 self.progressScreen()
+
+                # retrieve data from weather.com and keep old values if no connection
+                if self.state == "initial":
+                  self.weather_com_result = self.callServer( self.weather_com_result )
+                  self.state = "screen1"
+                  self.updateScreen(self.screen1)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, filename="logfile", filemode="a+", format="%(asctime)s %(message)s")
