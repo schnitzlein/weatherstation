@@ -125,6 +125,26 @@ class PygameWeather(object):
     # def updateScreen1         # put graphical change for screen1 here
     # def updateScreen2         # put graphical change for screen2 here
 
+    def progressScreen(self):
+       lcd.screen.fill(colourBlack)
+       pygame.display.update()
+       try:
+           picture = installPathImgBig + "easteregg_2.png"
+           logo = pygame.image.load(picture).convert()
+           self.w = logo.get_width() / 2.0
+           self.h = logo.get_height() / 2.0
+           logo = pygame.transform.scale(logo, (self.w,self.h))
+           self.lcd.screen.blit(logo, (0, 0))
+           textAnchorX = 310
+           textAnchorY = 5
+           textYoffset = 40
+           text_surface = self.font.render("Loading ...", True, self.colourWhite)
+           lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+           pygame.display.update()
+           time.sleep(self.screenTimeOffset)
+       except Exception as e:
+           logging.warn(e)
+
     #TODO: FIXME: call the altenate server connection and config the values correctly if main server not reachable
     # call weather server, if no connection or error return old data
     def callServer( self, mydict ):
@@ -207,8 +227,9 @@ class PygameWeather(object):
 
         # set X axis text anchor for the forecast text
         textAnchorX = 0
-        textXoffset = 75 #100
         textAnchorY = 10
+        textXoffset = 75 #100
+        textYoffset = 40
         #pygame.draw.line(lcd.screen.get_surface(), colourWhite, (50,10), (450,10),4)
 
         # add summy of the values in one row
@@ -353,6 +374,7 @@ class PygameWeather(object):
                 # retrieve data from weather.com and keep old values if no connection
                 if self.state == "initial":
                   self.weather_com_result = self.callServer( self.weather_com_result )
+                  self.progressScreen()
                   self.state = "screen1"
                   # if weather_com_result is empty check TODO: FIXME
                   # run alternative data, infunction
@@ -367,16 +389,16 @@ class PygameWeather(object):
                   # if weather_com_result is empty check TODO: FIXME
 
                 # special screen
-                showScreen3()
+                self.showScreen3()
 
                 # after network calling update the values
-                updateValues()
+                self.updateValues()
 
                 # 1. screen, dayInformation
-                showScreen1()
+                self.showScreen1()
 
                 # 2. screen, forecast
-                showScreen2()
+                self.showScreen2()
 
 
 

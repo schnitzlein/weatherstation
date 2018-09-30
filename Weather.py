@@ -127,8 +127,8 @@ class PygameWeather(object):
        try:
            icon = self.installPathImgBig + "easteregg_2.png"
            logo = pygame.image.load(icon).convert()
-           self.w = logo.get_width() - 30
-           self.h = logo.get_height() - 30
+           self.w = logo.get_width() - 300
+           self.h = logo.get_height() - 300
            logo = pygame.transform.scale(logo, (self.w,self.h))
            self.lcd.screen.blit(logo, (0, 0))
            textAnchorX = 310
