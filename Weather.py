@@ -4,6 +4,7 @@ import json
 from Display import PyLcd as lcd_screen
 import pygame
 import logging
+import requests
 
 # Constants
 pygame.mouse.set_visible(False)
@@ -31,7 +32,7 @@ class PygameWeather(object):
         # more vars
         self.states = ["initial", "screen1", "screen2", "screen3", "network"]
         self.state = "initial"
-        self.weather_com_result = {}
+        self.weather_data = {}
         self.h = 0
         self.w = 0
 
@@ -54,6 +55,81 @@ class PygameWeather(object):
         self.forecastPrecips = {}
         self.forecastWinds = {}
         self.forecastIcons = {}
+        # Create an instance of the PyLcd class
+        self.lcd = lcd_screen()
+
+    # see a clock with secounds, just call it in loop or as many times as you need it, after it clear the screen !
+    def showClock(self):
+        # clear screen and update
+        lcd.screen.fill(colourBlack)
+        pygame.display.update()
+        # show the clock @ (10,260), uodate the screen and wait 1 second
+        updated = time.strftime("%H:%M:%S")
+        text_surface = fontS2.render(updated, True, colourWhite)
+        lcd.screen.blit(text_surface, (10, 260))
+        pygame.display.update()
+        time.sleep(1)
 
     def callServer(self):
-        pass
+        def getDataFromServer():
+            data = {}
+            response = requests.get('https://api.forecast.io/forecast/500e8abf656226b5076cd1886f87f8b2/51.7781718,14.2472211?units=si')
+            if response.status_code == 200:
+                # allet schick -> los gehts
+                data = response.json() #r.text
+                if data != {}:
+                    #TODO check if all keys are present ...
+                    logging.info("Calling server successful")
+                else:
+                    pass # if failure calling ... get data from backup server , mapping icons ...
+                self.state = "screen1"
+
+            return data
+
+        if self.state == "initial":
+            self.weather_data = getDataFromServer()
+
+        if self.betweenTime >= self.updateRate:
+            self.betweenTime = 0
+            self.state = "network"
+            logging.info(format(self.updateRate) + " seconds is over, Calling server...")
+            self.weather_data = getDataFromServer()
+
+            self.state = "screen1"
+
+    def updateScreen(self, action, new_state):
+        #self.state = new_state
+        self.lcd.screen.fill(colourBlack)
+        pygame.display.update()
+        ############ screen specifica begin #############
+        action(new_state)
+        ############ screen specifica end ###############
+        # update screen
+        pygame.display.update()
+        # wait
+        time.sleep(self.screenTimeOffset)
+        self.betweenTime += self.screenTimeOffset
+        # blank the screen after screenTimeOffset
+        self.lcd.screen.fill(colourBlack)
+
+
+   def screen3(self, state):
+       self.state = state
+       icon = installPathImgBig + "easteregg.png"
+       logo = pygame.image.load(icon).convert()
+       self.w = logo.get_width() - 30
+       self.h = logo.get_height() - 30
+       logo = pygame.transform.scale(logo, (self.w,self.h))
+       self.lcd.screen.blit(logo, (0, 0))
+       textAnchorX = 310
+       textAnchorY = 5
+       textYoffset = 40
+       text_surface = font.render("Pause ...", True, colourWhite)
+       self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+
+   def run(self):
+       self.updateScreen(self.screen3, "screen3")
+
+if __name__ == '__main__':
+    p_obj = PygameWeather()
+    # ...

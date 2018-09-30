@@ -56,3 +56,9 @@ def iconMapping(icon_name):
 # tornado: tornado_icon.png
 
 # TODO: make a progress bar loading and checking data from server, init screen: easteregg_2.png show for at least 5 secs
+
+import requests
+r = requests.get('https://api.forecast.io/forecast/500e8abf656226b5076cd1886f87f8b2/51.7781718,14.2472211?units=si')
+#pp.pprint(r.json()['daily'])
+#print(r.text)
+print(r.status_code)
