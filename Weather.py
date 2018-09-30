@@ -82,27 +82,25 @@ class PygameWeather(object):
                     logging.info("Calling server successful")
                 else:
                     pass # if failure calling ... get data from backup server , mapping icons ...
-                self.state = "screen1"
-
+            else:
+                # server connection broken, or no internet, or ...
+                logging.info("Calling server failure")
+            self.state = "screen1"
             return data
 
         if self.state == "initial":
             self.weather_data = getDataFromServer()
-
         if self.betweenTime >= self.updateRate:
             self.betweenTime = 0
             self.state = "network"
             logging.info(format(self.updateRate) + " seconds is over, Calling server...")
             self.weather_data = getDataFromServer()
 
-            self.state = "screen1"
-
-    def updateScreen(self, action, new_state):
-        #self.state = new_state
+    def updateScreen(self, action):
         self.lcd.screen.fill(colourBlack)
         pygame.display.update()
         ############ screen specifica begin #############
-        action(new_state)
+        action()
         ############ screen specifica end ###############
         # update screen
         pygame.display.update()
@@ -112,6 +110,37 @@ class PygameWeather(object):
         # blank the screen after screenTimeOffset
         self.lcd.screen.fill(colourBlack)
 
+   def progressScreen(self):
+       # subroutine
+       # timeout = 5
+       # sleep(1)
+       # update progressbar with + 20%
+       # update screen and blit progress
+       # pygame.draw.rect(...)
+       self.lcd.screen.fill(colourBlack)
+       pygame.display.update()
+       # load picture and show ...
+       self.state = "initial"
+       icon = installPathImgBig + "easteregg.png"
+       logo = pygame.image.load(icon).convert()
+       self.w = logo.get_width() - 30
+       self.h = logo.get_height() - 30
+       logo = pygame.transform.scale(logo, (self.w,self.h))
+       self.lcd.screen.blit(logo, (0, 0))
+       textAnchorX = 310
+       textAnchorY = 5
+       textYoffset = 40
+       text_surface = font.render("Pause ...", True, colourWhite)
+       self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+       pygame.display.update()
+       # wait
+       time.sleep(timeout)
+
+   def screen1(self):
+       pass
+
+   def screen2(self):
+       pass
 
    def screen3(self, state):
        self.state = state
