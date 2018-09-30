@@ -50,7 +50,7 @@ class PygameWeather(object):
         fontSm = pygame.font.Font(fontpath, 18)
         colourWhite = (255, 255, 255)
         colourBlack = (0, 0, 0)
-        #TODO: add auto installer, auto config, with python setup tools, and read config ... 
+        #TODO: add auto installer, auto config, with python setup tools, and read config ...
         # installPath is like "/home/username/installfolder/img/big" ... ".../small"
         installPathImgBig = "/home/pi/weatherstation/img/big/"
         installPathImgSmall = "/home/pi/weatherstation/img/small/"
@@ -249,17 +249,18 @@ class PygameWeather(object):
         quit = False
         while not quit:
             for event in pygame.event.get():
-                if event.type == QUIT: #sth wrong here if pygame.QUIT
-                  sys.exit()
-                  quit = True
+                if event.type == pygame.QUIT:
+                   sys.exit()
+                   quit = True
                 elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                  quit = True
-                  logging.info("ESC Key was pressed")
+                   quit = True
+                   logging.info("ESC Key was pressed")
 
                 if quit is True:
-                  print("Escape Button was pressed.")
-                  return
-            self.progressScreen()
+                   print("Escape Button was pressed.")
+                   return
+                # show screen
+                self.progressScreen()
 
 if __name__ == '__main__':
     p_obj = PygameWeather()
