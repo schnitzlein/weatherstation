@@ -1,5 +1,6 @@
 import datetime
 import time
+import string
 import json
 from Display import PyLcd as lcd_screen
 import pygame
@@ -44,28 +45,31 @@ class PygameWeather(object):
         self.lcd = lcd_screen()
         # Constants
         pygame.mouse.set_visible(False)
-        fontpath = pygame.font.match_font('dejavusansmono')
-        font = pygame.font.Font(fontpath, 36)
-        fontS2 = pygame.font.Font(fontpath, 28)
-        fontSm = pygame.font.Font(fontpath, 18)
-        colourWhite = (255, 255, 255)
-        colourBlack = (0, 0, 0)
+        self.fontpath = pygame.font.match_font('dejavusansmono')
+        self.font = pygame.font.Font(self.fontpath, 36)
+        self.fontS2 = pygame.font.Font(self.fontpath, 28)
+        self.fontSm = pygame.font.Font(self.fontpath, 18)
+        self.colourWhite = (255, 255, 255)
+        self.colourBlack = (0, 0, 0)
         #TODO: add auto installer, auto config, with python setup tools, and read config ...
         # installPath is like "/home/username/installfolder/img/big" ... ".../small"
-        installPathImgBig = "/home/pi/weatherstation/img/big/"
-        installPathImgSmall = "/home/pi/weatherstation/img/small/"
+        self.installPathImgBig = "/home/pi/weatherstation/img/big/"
+        self.installPathImgSmall = "/home/pi/weatherstation/img/small/"
         # Constants
 
     # see a clock with secounds, just call it in loop or as many times as you need it, after it clear the screen !
     def showClock(self):
         # clear screen and update
-        lcd.screen.fill(colourBlack)
+        logging.debug("I am here")
+        lcd.screen.fill(self.colourBlack)
         pygame.display.update()
+        logging.debug("I am updated")
         # show the clock @ (10,260), uodate the screen and wait 1 second
         updated = time.strftime("%H:%M:%S")
-        text_surface = fontS2.render(updated, True, colourWhite)
+        text_surface = self.fontS2.render(updated, True, self.colourWhite)
         lcd.screen.blit(text_surface, (10, 260))
         pygame.display.update()
+        logging.debug("I am should show now a running clock")
         time.sleep(1)
 
     def callServer(self):
@@ -96,7 +100,7 @@ class PygameWeather(object):
             self.weather_data = getDataFromServer()
 
     def updateScreen(self, action):
-        self.lcd.screen.fill(colourBlack)
+        self.lcd.screen.fill(self.colourBlack)
         pygame.display.update()
         ############ screen specifica begin #############
         action()
@@ -107,7 +111,7 @@ class PygameWeather(object):
         time.sleep(self.screenTimeOffset)
         self.betweenTime += self.screenTimeOffset
         # blank the screen after screenTimeOffset
-        self.lcd.screen.fill(colourBlack)
+        self.lcd.screen.fill(self.colourBlack)
 
     def progressScreen(self):
        # subroutine
@@ -116,12 +120,12 @@ class PygameWeather(object):
        # update progressbar with + 20%
        # update screen and blit progress
        # pygame.draw.rect(...)
-       self.lcd.screen.fill(colourBlack)
+       self.lcd.screen.fill(self.colourBlack)
        pygame.display.update()
        # load picture and show ...
        self.state = "initial"
        try:
-           icon = installPathImgBig + "easteregg_2.png"
+           icon = self.installPathImgBig + "easteregg_2.png"
            logo = pygame.image.load(icon).convert()
            self.w = logo.get_width() - 30
            self.h = logo.get_height() - 30
@@ -130,7 +134,7 @@ class PygameWeather(object):
            textAnchorX = 310
            textAnchorY = 5
            textYoffset = 40
-           text_surface = font.render("Loading ...", True, colourWhite)
+           text_surface = self.font.render("Loading ...", True, self.colourWhite)
            self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
            pygame.display.update()
            time.sleep(self.screenTimeOffset)
@@ -141,7 +145,7 @@ class PygameWeather(object):
 
     def screen1(self):
        # Render the weather logo at 0,0
-       icon = installPathImgBig + (self.weather_com_result['current_conditions']['icon']) + ".png"
+       icon = self.installPathImgBig + (self.weather_com_result['current_conditions']['icon']) + ".png"
        logo = pygame.image.load(icon).convert()
        self.w = logo.get_width() - 50
        self.h = logo.get_height() - 50
@@ -152,25 +156,25 @@ class PygameWeather(object):
        textAnchorY = 5
        textYoffset = 40
        # add current weather data text artifacts to the screen
-       text_surface = font.render(self.today, True, colourWhite)
+       text_surface = self.font.render(self.today, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
        textAnchorY+=textYoffset
-       text_surface = font.render(self.currTemp, True, colourWhite)
+       text_surface = self.font.render(self.currTemp, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
        textAnchorY+=textYoffset
-       text_surface = font.render(self.currTempFeeling, True, colourWhite)
+       text_surface = self.font.render(self.currTempFeeling, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
        textAnchorY+=textYoffset
-       text_surface = font.render(self.currWind, True, colourWhite)
+       text_surface = self.font.render(self.currWind, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
        textAnchorY+=textYoffset
-       text_surface = font.render(self.currPress, True, colourWhite)
+       text_surface = self.font.render(self.currPress, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
        textAnchorY+=textYoffset
-       text_surface = font.render(self.uv, True, colourWhite)
+       text_surface = self.font.render(self.uv, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
        textAnchorY+=textYoffset
-       text_surface = font.render(self.humid, True, colourWhite)
+       text_surface = self.font.render(self.humid, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
     def screen2(self):
@@ -178,11 +182,11 @@ class PygameWeather(object):
        textAnchorX = 0
        textXoffset = 75 #100
        textAnchorY = 10
-       #pygame.draw.line(lcd.screen.get_surface(), colourWhite, (50,10), (450,10),4)
+       #pygame.draw.line(lcd.screen.get_surface(), self.colourWhite, (50,10), (450,10),4)
 
        # add summy of the values in one row
        for i in range(0,5):
-         text_surface = fontS2.render(self.forecastDesc[i], True, colourWhite)
+         text_surface = self.fontS2.render(self.forecastDesc[i], True, self.colourWhite)
          lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
          textAnchorY+=textYoffset
 
@@ -192,19 +196,19 @@ class PygameWeather(object):
        # add each days forecast text + icon
        for i in range(1, 5):
            textAnchorY = 10
-           text_surface = fontS2.render(self.forecastDays[i], True, colourWhite)
+           text_surface = self.fontS2.render(self.forecastDays[i], True, self.colourWhite)
            lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
            textAnchorY+=textYoffset
-           text_surface = fontS2.render(self.forecaseHighs[i], True, colourWhite)
+           text_surface = self.fontS2.render(self.forecaseHighs[i], True, self.colourWhite)
            lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
            textAnchorY+=textYoffset
-           text_surface = fontS2.render(self.forecaseLows[i], True, colourWhite)
+           text_surface = self.fontS2.render(self.forecaseLows[i], True, self.colourWhite)
            lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
            textAnchorY+=textYoffset
-           #text_surface = fontS2.render(self.forecastPrecips[i], True, colourWhite)
+           #text_surface = self.fontS2.render(self.forecastPrecips[i], True, self.colourWhite)
            #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
            #textAnchorY+=textYoffset
-           #text_surface = fontS2.render(self.forecastWinds[i], True, colourWhite)
+           #text_surface = self.fontS2.render(self.forecastWinds[i], True, self.colourWhite)
            #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
            #textAnchorX+=textXoffset
            try:
@@ -225,17 +229,17 @@ class PygameWeather(object):
        # today desc under the table
        textAnchorY = 220
        textAnchorX = 10
-       text_surface = fontS2.render(self.todayDesc, True, colourWhite)
+       text_surface = self.fontS2.render(self.todayDesc, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
        # update when information
        textAnchorY+=textYoffset
        updated = time.strftime("%H:%M") #time.strftime("%H:%M:%S")
-       text_surface = fontS2.render(updated, True, colourWhite)
+       text_surface = self.fontS2.render(updated, True, self.colourWhite)
        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
     def screen3(self, next_state):
        self.state = next_state
-       icon = installPathImgBig + "easteregg.png"
+       icon = self.installPathImgBig + "easteregg.png"
        logo = pygame.image.load(icon).convert()
        self.w = logo.get_width() - 30
        self.h = logo.get_height() - 30
@@ -244,7 +248,7 @@ class PygameWeather(object):
        textAnchorX = 310
        textAnchorY = 5
        textYoffset = 40
-       text_surface = font.render("Pause ...", True, colourWhite)
+       text_surface = self.font.render("Pause ...", True, self.colourWhite)
        self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
     def run(self):
@@ -275,7 +279,6 @@ class PygameWeather(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, filename="logfile", filemode="a+", format="%(asctime)s %(message)s")
     try:
-       p_obj = PygameWeather()
-       p_obj.run()
+       PygameWeather().run()
     except Exception as e:
        logging.error(e)

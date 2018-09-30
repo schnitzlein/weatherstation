@@ -31,6 +31,8 @@ class PyLcd :
 
         size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+        if self.screen:
+            logging.debug("screen Initialized h: {} w: {}".format(pygame.display.Info().current_h, pygame.display.Info().current_w))
         # Clear the screen to start
         self.screen.fill((0, 0, 0))
         # Initialise font support
