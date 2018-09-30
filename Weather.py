@@ -133,7 +133,6 @@ class PygameWeather(object):
            self.lcd.screen.blit(logo, (0, 0))
            textAnchorX = 310
            textAnchorY = 5
-           textYoffset = 40
            text_surface = self.font.render("Loading ...", True, self.colourWhite)
            self.lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
            pygame.display.update()
@@ -266,14 +265,14 @@ class PygameWeather(object):
                 if quit is True:
                    print("Escape Button was pressed.")
                    return
-                # show screen
-                #self.progressScreen()
-                self.showClock()
-                # retrieve data from weather.com and keep old values if no connection
-                #if self.state == "initial":
-                #  self.weather_com_result = self.callServer( self.weather_com_result )
-                #  self.state = "screen1"
-                #  self.updateScreen(self.screen1)
+            # show screen
+            self.progressScreen()
+            self.showClock()
+            # retrieve data from weather.com and keep old values if no connection
+            #if self.state == "initial":
+            #  self.weather_com_result = self.callServer( self.weather_com_result )
+            #  self.state = "screen1"
+            #  self.updateScreen(self.screen1)
 
 
 if __name__ == '__main__':
