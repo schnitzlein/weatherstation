@@ -3,8 +3,8 @@ import time
 import json
 import string
 #import urllib2
-from Display import PyLcd as lcd_screen
-import pygame
+#from Display import PyLcd as lcd_screen
+#import pygame
 import logging
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -13,8 +13,8 @@ pp = pprint.PrettyPrinter(indent=4)
 # http://greanwhichmeantime.com/time-zone/europe/european-union/germany/
 
 mydict = []
-with open('mylog.json', 'r') as inf:
-  mydict = eval(inf.read())
+with open('mylog.json', 'r') as jsonfile:
+  mydict = eval(jsonfile.read())
 
 pp.pprint(mydict['currently'])
 pp.pprint(mydict['hourly']['summary'])
@@ -28,10 +28,11 @@ germany_offset = mydict['offset'] # from server, can be hardcoded it is 2 hours,
 pp.pprint(mydict['daily']['summary'])
 pp.pprint(mydict['daily']['icon'])
 for i in mydict['daily']['data']:
-    print(i['apparentTemperatureHigh'])
+    print("max: " ,i['apparentTemperatureHigh'])
     print( datetime.datetime.fromtimestamp( i['apparentTemperatureHighTime'] ) + datetime.timedelta(hours=2) ) # Zeit wann am waermsten
+    print("min: ", i['apparentTemperatureLow'])
     print( datetime.datetime.fromtimestamp( i['apparentTemperatureLowTime'] ) + datetime.timedelta(hours=2) ) # Zeit wann am kaeltesten am TAG, Rest ist deprecated
-    print(i['apparentTemperatureLow'])
+
 
 # TODO: cast forecastIcons and current Icons mapping
 # possible mapping ... TODO
@@ -57,8 +58,12 @@ def iconMapping(icon_name):
 
 # TODO: make a progress bar loading and checking data from server, init screen: easteregg_2.png show for at least 5 secs
 
+# TODO: unittest for this
+""" simple call to request """
+"""
 import requests
 r = requests.get('https://api.forecast.io/forecast/500e8abf656226b5076cd1886f87f8b2/51.7781718,14.2472211?units=si')
 #pp.pprint(r.json()['daily'])
 #print(r.text)
 print(r.status_code)
+"""
