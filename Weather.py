@@ -270,7 +270,7 @@ class PygameWeather(object):
               self.betweenTime = 0
               self.state = "network"
             #  self.updateScreen(self.screen1)
-            self.updateScreen(self.screen3("state1"))
+            self.updateScreen(self.screen3())
 
 
 if __name__ == '__main__':
