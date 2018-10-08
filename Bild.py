@@ -363,7 +363,7 @@ class PygameWeather(object):
                     if event.type == pygame.QUIT: #sth wrong here if pygame.QUIT
                       sys.exit()
                       quit = True
-                  elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                       quit = True
                       logging.info("ESC Key was pressed")
 
