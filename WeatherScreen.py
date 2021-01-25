@@ -112,7 +112,7 @@ fontSm = pygame.font.Font(fontpath, 18)
 # Constants
 
 class PygameWeather(object):
-    """This class uses pygame and show on [ X-Server | console ] graphic Weatherinformation"""
+    """This class uses pygame and show on [ X-Server | Framebuffer ] graphic Weatherinformation"""
 
     # class variable
     updateRate = 7200     # seconds, for server call # update interval
@@ -146,6 +146,16 @@ class PygameWeather(object):
     forecastWinds = {}
     forecastIcons = {}
 
+    # pygame user events
+    screen3_event = pygame.USEREVENT + 3
+    screen2_event = pygame.USEREVENT + 2
+    screen1_event = pygame.USEREVENT + 1
+
+    # set timer for the user events
+    pygame.time.set_timer(screen1_event, betweenTime)
+    pygame.time.set_timer(screen2_event, betweenTime)
+    pygame.time.set_timer(screen3_event, betweenTime)
+
     #TODO: add all local vars here add self. in front of all local vars
 
     # def evaluateInformation() # put the var assignment here
@@ -159,6 +169,37 @@ class PygameWeather(object):
         #d_strs = list(calendar.day_name)
         d_strs = list(calendar.day_abbr)
         return d_strs[dt]
+
+    # state rotator with text_state, not a good idea, anyway
+    def misc(self, text_state, direction):
+        state_number = int(text_state[6])
+        if direction == "left":
+            if (state_number - 1) == 0:
+                new_text_state = "screen3"
+            else:
+                new_text_state = "screen" + str(state_number - 1)
+        elif direction == "right":
+            if (state_number + 1) == 4:
+                new_text_state = "screen1"
+            else:
+                new_text_state = "screen" + str(state_number + 1)
+        else:
+            print("This is not a valid direction.")
+
+        return new_text_state
+
+    def raise_event(self, text_state):
+        next_event = None
+        if text_state == "screen1":
+            next_event = self.screen1_event
+        elif text_state == "screen2":
+            next_event = self.screen2_event
+        elif text_state == "screen3":
+            next_event = self.screen3_event
+        else:
+            pass
+        pygame.event.post(next_event)
+
 
     def progressScreen(self):
        lcd.screen.fill(colourBlack)
@@ -412,65 +453,86 @@ class PygameWeather(object):
     # use pygame event system and register functions as events which fire after time expire
     # implement run method
     def run(self):
-       #global forecastIcons
-       quit = False
-       while not quit:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        sys.exit()
-                    elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                      quit = True
-                      logging.info("ESC Key was pressed")
 
-                    if quit is True:
-                      print("Escape Button was pressed.")
-                      return
+        # initial stuff do only one time
+        #self.showClock()
+        self.weather_data = self.callServer(self.weather_data)
+        if self.weather_data != None:
+            self.updateValues()
 
-                self.showClock()
-                self.weather_data = self.callServer(self.weather_data)
-                if self.weather_data != None:
-                    self.updateValues()
+        while True:
+            FPS = 60
+            FramePerSec = pygame.time.Clock()
+            FramePerSec.tick(FPS)
+
+            # Exit
+            if pygame.event.get(pygame.QUIT):
+                pygame.quit()
+                sys.exit()
+
+            # Main Event handling
+            for e in pygame.event.get():
+                if e.type == self.screen1_event:
                     self.state = "screen1"
                     self.showScreen1()
-
+                elif e.type == self.screen2_event:
                     self.state = "screen2"
                     self.showScreen2()
-
+                elif e.type == self.screen3_event:
                     self.state = "screen3"
                     self.showScreen3()
 
+            pressed = pygame.key.get_pressed()
+            if pressed[pygame.K_LEFT]: self.raise_event( self.misc(self.state, "left") )
+            if pressed[pygame.K_RIGHT]: self.raise_event( self.misc(self.state, "right") )
+            if pressed[pygame.K_ESCAPE]: sys.exit()
 
-                """
-                # retrieve data from weather.com and keep old values if no connection
-                if self.state == "initial":
-                  self.weather_data = self.callServer( self.weather_data )
-                  logging.info("Inital calling server successful!")
-                  print(self.weather_data)
-                  self.progressScreen()
-                  self.state = "screen1"
-
-
-                if self.betweenTime >= self.updateRate:
-                  self.betweenTime = 0
-                  self.state = "network"
-                  logging.info(format(self.updateRate) + " seconds is over, Calling server...")
-                  self.weather_data = self.callServer( self.weather_data )
-                  logging.info("Calling server successful")
-                  self.state = "screen1"
-
-                # special screen
-                self.showScreen3()
-
-                # after network calling update the values
+            # TODO: create async thread to listen for events
+            """
+            self.showClock()
+            self.weather_data = self.callServer(self.weather_data)
+            if self.weather_data != None:
                 self.updateValues()
-
-                # 1. screen, dayInformation
+                self.state = "screen1"
                 self.showScreen1()
 
-                # 2. screen, forecast
+                self.state = "screen2"
                 self.showScreen2()
-                """
+
+                self.state = "screen3"
+                self.showScreen3()
+            """
+
+            """
+            # retrieve data from weather.com and keep old values if no connection
+            if self.state == "initial":
+              self.weather_data = self.callServer( self.weather_data )
+              logging.info("Inital calling server successful!")
+              print(self.weather_data)
+              self.progressScreen()
+              self.state = "screen1"
+
+
+            if self.betweenTime >= self.updateRate:
+              self.betweenTime = 0
+              self.state = "network"
+              logging.info(format(self.updateRate) + " seconds is over, Calling server...")
+              self.weather_data = self.callServer( self.weather_data )
+              logging.info("Calling server successful")
+              self.state = "screen1"
+
+            # special screen
+            self.showScreen3()
+
+            # after network calling update the values
+            self.updateValues()
+
+            # 1. screen, dayInformation
+            self.showScreen1()
+
+            # 2. screen, forecast
+            self.showScreen2()
+            """
 
 
 if __name__ == '__main__':
