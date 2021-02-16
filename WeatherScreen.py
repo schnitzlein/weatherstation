@@ -1,4 +1,5 @@
-import os, sys
+import os
+from sys import exit
 import pygame
 import time
 #import pywapi
@@ -7,6 +8,7 @@ import string
 import logging
 import datetime
 import calendar
+import threading
 
 # *** Not to be used for commercial use without permission!
 # if you want to buy the icons for commercial use please send me a note - http://vclouds.deviantart.com/ ***
@@ -67,6 +69,7 @@ class PyLcd :
         pygame.font.init()
         # Render the screen
         pygame.display.update()
+        logging.debug("pygame runs with fbcon support.")
 
     def init_xserver_screen(self):
         try:
@@ -84,13 +87,14 @@ class PyLcd :
             pygame.font.init()
             # Render the screen
             pygame.display.update()
+            logging.debug("pygame runs with X-Server support.")
         except Exception as e:
-           logging.error("Creating pygame Screen for X-Server: {}".format(e))
+           logging.error("Error creating pygame Screen for X-Server: {}".format(e))
 
     def __init__(self):
         self.init_xserver_screen()
         logging.debug("pygame screen succesful created.")
-        print("dit klappt")
+        print("pygame screen succesful created.")
 
     def __del__(self):
         logging.info("pygame screen destructor called -> QUIT now.")
@@ -127,8 +131,9 @@ class PygameWeather(object):
     betweenTime = 20      # seconds, befor screen switching (pause time) obsolet
     screenTimeOffset = 20 # same Time like betweenTime, was intentionally the time the screens are show
     # more vars
-    states = ["initial", "screen1", "screen2", "screen3", "network"]
-    state = "initial"
+    app_states = ["initial", "screen1", "screen2", "screen3", "network"]
+    lcd_states = [0,1,2]
+    state = 0
     weather_data = {}
     h = 0
     w = 0
@@ -513,31 +518,61 @@ class PygameWeather(object):
                     logging.warning("update icons for pictures: {}".format(e))
 
     def updateScreen(self, state):
-        pass
+        if state == 1:
+            self.showScreen1()
+        if state == 2:
+            self.showScreen2()
+        if state == 3:
+            self.showScreen3()
+        # wait between screen changes screenTimeOffset alias first betweenTime
+        pygame.display.update()
+        # wait
+        time.sleep(self.screenTimeOffset)
+        self.betweenTime += self.screenTimeOffset
+        # blank the screen after screenTimeOffset
+        lcd.screen.fill(colorBlack)
+        pygame.display.update()
 
-    #todo: seperate code in state-machine in run and put other stuff in seperate functions
-    # use pygame event system and register functions as events which fire after time expire
-    # implement run method
-    def run(self):
 
-        # initial stuff do only one time
-        #self.showClock()
-        self.weather_data = self.callServer(self.weather_data)
-        if self.weather_data != None:
-            self.updateValues()
+    # Key Event checker Thread
+    def threadEventChecker(self):
+        keep_alive = True
+        while keep_alive:
+            # get the pressed key
+            pressed = pygame.key.get_pressed()
+            if pressed[pygame.K_LEFT]:
+                #self.raise_event( self.misc(self.state, "left") )
+                print("left key pressed")
+                self.state = self.state - 1
+                if self.state < 0:
+                    self.state = 2
+                print("next screen: {}".format(self.state))
+                pygame.time.set_timer( self.screen1_event, 0)
+            if pressed[pygame.K_RIGHT]:
+                #self.raise_event( self.misc(self.state, "right") )
+                print("right key pressed")
+                self.state = self.state + 1
+                if self.state > 2:
+                    self.state = 0
+                print("next screen: {}".format(self.state))
+                pygame.time.set_timer( self.screen2_event, 0)
+            if pressed[pygame.K_ESCAPE]:
+                #self.raise_event ( pygame.QUIT )
+                pygame.event.post( pygame.QUIT )
+                print("esc key pressed")
+                keep_alive = False
 
+    # SDL / Pygame Thread
+    def threadShowScreen(self):
         while True:
-            FPS = 60
-            FramePerSec = pygame.time.Clock()
-            FramePerSec.tick(FPS)
-
-            # Exit
-            if pygame.event.get(pygame.QUIT):
-                pygame.quit()
-                sys.exit()
 
             # Main Event handling
             for e in pygame.event.get():
+                pressed = pygame.key.get_pressed()
+                if pressed[pygame.K_LEFT]: self.raise_event( self.misc(self.state, "left") )
+                if pressed[pygame.K_RIGHT]: self.raise_event( self.misc(self.state, "right") )
+                if pressed[pygame.K_ESCAPE]: sys.exit()
+                print(e)
                 if e.type == self.screen1_event:
                     self.state = "screen1"
                     self.showScreen1()
@@ -547,13 +582,90 @@ class PygameWeather(object):
                 elif e.type == self.screen3_event:
                     self.state = "screen3"
                     self.showScreen3()
+                if e.type == pygame.QUIT:
+                    raise SystemExit
 
-            pressed = pygame.key.get_pressed()
-            if pressed[pygame.K_LEFT]: self.raise_event( self.misc(self.state, "left") )
-            if pressed[pygame.K_RIGHT]: self.raise_event( self.misc(self.state, "right") )
-            if pressed[pygame.K_ESCAPE]: sys.exit()
+    #todo: Old solution C-Style state-machine|timer based: seperate code in state-machine in run and put other stuff in seperate functions
+    #todo: new solution use pygame + python Threading technics (queue, threading) run one thread fetches events, run other thread show the screen (or both?)
+    def main(self):
+        running = True
+        # initial stuff do only one time
+        #todo: Call Server and update data should be in thread safe different thread, calling each day 3-5 times (6 hours)
+        self.weather_data = self.callServer(self.weather_data)
+        if self.weather_data != None:
+            self.updateValues()
 
-            # TODO: create async thread to listen for events
+        while running:
+            FPS = 60
+            FramePerSec = pygame.time.Clock()
+            FramePerSec.tick(FPS)
+
+            # Thread Screen Shower
+            t1 = threading.Thread(target=self.showScreen1())
+            #t1.daemon = True
+
+            t2 = threading.Thread(target=self.showScreen2())
+            #t2.daemon = True
+
+            t3 = threading.Thread(target=self.showScreen3())
+
+            # Event Checker
+            #t = threading.Thread(target=self.threadEventChecker)
+            #t.daemon = True
+            #t.start()
+
+            # Event Checker
+            #t2 = threading.Thread(target=self.threadShowScreen)
+            #t2.start()
+
+            #t1.start()
+            #t2.start()
+
+            # begin main event handling
+            for e in pygame.event.get():
+                # get the pressed key
+                pressed = pygame.key.get_pressed()
+                if pressed[pygame.K_ESCAPE]:
+                    pygame.event.post( pygame.QUIT )
+                    print("esc key pressed")
+
+                # switch screen manually
+                # switch screen from timeout
+                if e.type == self.screen1_event:
+                    self.state = "screen1"
+                    print("screen1")
+                    pygame.event.clear()
+                    #t1.join(5.0)
+                    #print(e)
+                if e.type == self.screen2_event:
+                    self.state = "screen2"
+                    print("screen1")
+                    pygame.event.clear()
+                    #t2.join(5.0)
+
+                if e.type == self.screen3_event:
+                    self.state = "screen3"
+                    print("screen3")
+                    pygame.event.clear()
+                    #t3.join(5.0)
+
+                # Exit
+                if e.type == pygame.QUIT:
+                    running = False
+                    pygame.event.clear()
+                    t1.join()
+                    t2.join()
+                    t3.join()
+            # end event handling
+
+
+
+
+
+
+
+
+            # (obsolete) old state machine
             """
             self.showClock()
             self.weather_data = self.callServer(self.weather_data)
@@ -600,10 +712,13 @@ class PygameWeather(object):
             self.showScreen2()
             """
 
+        pygame.quit()
+        exit()
 
 if __name__ == '__main__':
   logging.basicConfig(level=logging.DEBUG, filename="mylogfile", filemode="a+", format="%(asctime)s %(levelname)s:%(message)s")
   try:
-    PygameWeather().run()
+    myweatherprogramm = PygameWeather()
+    myweatherprogramm.main()
   except Exception as e:
     logging.warning(e)
