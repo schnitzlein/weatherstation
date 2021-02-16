@@ -512,20 +512,17 @@ class PygameWeather(object):
                     logging.warning("update icons for pictures: {}".format(e))
 
     def updateScreen(self, state):
+        # clear everything before changeing screens
+        lcd.screen.fill(colorBlack)
+        pygame.display.update()
         if state == 1:
             self.showScreen1()
         if state == 2:
             self.showScreen2()
         if state == 3:
             self.showScreen3()
-        # wait between screen changes screenTimeOffset alias first betweenTime
-        pygame.display.update()
-        # wait
-        time.sleep(self.screenTimeOffset)
-        self.betweenTime += self.screenTimeOffset
-        # blank the screen after screenTimeOffset
-        lcd.screen.fill(colorBlack)
-        pygame.display.update()
+        if state < 0 or state > 3:
+            logging.warning("updateScreen(): updateing to unknown state")
 
 
 
