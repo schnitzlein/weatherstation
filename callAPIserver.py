@@ -18,7 +18,7 @@ def callServer( ):
     if response HTTP Status != 200 returns None
     """
 
-    url = 'https://api.forecast.io/forecast/500e8abf656226b5076cd1886f87f8b2/51.0687216,13.6849743?units=si'
+    url = 'https://api.forecast.io/forecast/<API-KEY>/50.0,13.0?units=si' # '?lang=de'
     params = {}
     # params = dict(foo='', foo2='')
     resp = requests.get(url=url, params=params)
@@ -54,7 +54,7 @@ def test():
     print(humid)
     print(currTempFeeling)
     print(todayDesc)
-    
+
     #time.sleep(30)
     sys.exit(0)
 
