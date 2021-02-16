@@ -170,15 +170,9 @@ class PygameWeather(object):
     screen1_event = pygame.USEREVENT + 1
 
     # set timer for the user events
-    pygame.time.set_timer(screen1_event, betweenTime)
-    pygame.time.set_timer(screen2_event, betweenTime)
-    pygame.time.set_timer(screen3_event, betweenTime)
-
-    #TODO: add all local vars here add self. in front of all local vars
-
-    # def evaluateInformation() # put the var assignment here
-    # def updateScreen1         # put graphical change for screen1 here
-    # def updateScreen2         # put graphical change for screen2 here
+    #pygame.time.set_timer(screen1_event, betweenTime) #  fires the event every betweenTime milliseconds
+    #pygame.time.set_timer(screen2_event, betweenTime)
+    #pygame.time.set_timer(screen3_event, betweenTime)
 
     def getWeekday(self, number):
         d_today = datetime.datetime.today()
@@ -188,35 +182,37 @@ class PygameWeather(object):
         d_strs = list(calendar.day_abbr)
         return d_strs[dt]
 
-    # state rotator with text_state, not a good idea, anyway
-    def misc(self, text_state, direction):
-        state_number = int(text_state[6])
-        if direction == "left":
-            if (state_number - 1) == 0:
-                new_text_state = "screen3"
-            else:
-                new_text_state = "screen" + str(state_number - 1)
-        elif direction == "right":
-            if (state_number + 1) == 4:
-                new_text_state = "screen1"
-            else:
-                new_text_state = "screen" + str(state_number + 1)
-        else:
-            print("This is not a valid direction.")
+    # create a new event in event queue for state_number
+    def raise_event(self, state_number):
 
-        return new_text_state
-
-    def raise_event(self, text_state):
-        next_event = None
-        if text_state == "screen1":
-            next_event = self.screen1_event
-        elif text_state == "screen2":
-            next_event = self.screen2_event
-        elif text_state == "screen3":
-            next_event = self.screen3_event
+        if   state_number == 0:
+            ee = pygame.event.Event(self.screen1_event)
+        elif state_number == 1:
+            ee = pygame.event.Event(self.screen2_event)
+        elif state_number == 2:
+            ee = pygame.event.Event(self.screen3_event)
         else:
-            pass
-        pygame.event.post(next_event)
+            return # state is not known
+        #pygame.event.post(ee)
+        pygame.fastevent.post(ee) # enqueue new event
+
+    #  enabled the timer; timer fires the event every given time milliseconds
+    def enable_event_timer(self):
+        #todo: make it generic:  betweenTime * n-Screennumber
+        pygame.time.set_timer(screen1_event, betweenTime)
+        pygame.time.set_timer(screen2_event, betweenTime*2)
+        pygame.time.set_timer(screen3_event, betweenTime*3)
+
+    # disables the timer for event firing
+    def disable_event_timer(self):
+        pygame.time.set_timer(screen1_event, 0)
+        pygame.time.set_timer(screen2_event, 0)
+        pygame.time.set_timer(screen3_event, 0)
+
+    # shows the next screen, ring rotation style
+    def showNext(self):
+        self.rotate_right()
+        self.show_screens()
 
 
     def progressScreen(self):
@@ -337,11 +333,11 @@ class PygameWeather(object):
         # wait between screen changes screenTimeOffset alias first betweenTime
         pygame.display.update()
         # wait
-        time.sleep(self.screenTimeOffset)
-        self.betweenTime += self.screenTimeOffset
+        #time.sleep(self.screenTimeOffset)
+        #self.betweenTime += self.screenTimeOffset
         # blank the screen after screenTimeOffset
-        lcd.screen.fill(colorBlack)
-        pygame.display.update()
+        #lcd.screen.fill(colorBlack)
+        #pygame.display.update()
 
     def showScreen2(self):
         # state = screen2
@@ -430,19 +426,18 @@ class PygameWeather(object):
         pygame.display.update()
 
         # wait
-        time.sleep(self.screenTimeOffset)
-        self.betweenTime += self.screenTimeOffset
+        #time.sleep(self.screenTimeOffset)
+        #self.betweenTime += self.screenTimeOffset
 
         # blank the screen after screenTimeOffset
-        lcd.screen.fill(colorBlack)
-        pygame.display.update()
+        #lcd.screen.fill(colorBlack)
+        #pygame.display.update()
         # Wait
         #time.sleep(updateRate)
 
     def showScreen3(self):
         # screen3 siesta beginns
         if (time.strftime("%H:%M") >= '11:00' and time.strftime("%H:%M") <= '15:00') and self.weather_data['currently']['uvIndex'] >= 6:
-            self.state = "screen3"
             lcd.screen.fill(colorBlack)
             icon = installPathImgBig + "siesta.jpeg"
             logo = pygame.image.load(icon).convert()
@@ -458,12 +453,11 @@ class PygameWeather(object):
                 text_surface = font.render("Siesta !!!", True, colorRed)
             lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
             pygame.display.update()
-            time.sleep(self.screenTimeOffset)
+            #time.sleep(self.screenTimeOffset)
             self.betweenTime += self.screenTimeOffset
         # screen3 siesta ends
         # screen3 beginn
-        if (time.strftime("%H:%M") >= '18:00' and time.strftime("%H:%M") <= '19:00') or (time.strftime("%d/%m") == '05/12'):
-            self.state = "screen3"
+        if (time.strftime("%H:%M") >= '18:00' and time.strftime("%H:%M") <= '24:00') or (time.strftime("%d/%m") == '05/12'):
             lcd.screen.fill(colorBlack)
             icon = installPathImgBig + "easteregg.png"
             logo = pygame.image.load(icon).convert()
@@ -477,7 +471,7 @@ class PygameWeather(object):
             text_surface = font.render("Pause ...", True, colorWhite)
             lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
             pygame.display.update()
-            time.sleep(self.screenTimeOffset)
+            #time.sleep(self.screenTimeOffset)
             self.betweenTime += self.screenTimeOffset
         # screen3 ends
 
@@ -534,134 +528,179 @@ class PygameWeather(object):
         pygame.display.update()
 
 
+
     # Key Event checker Thread
     def threadEventChecker(self):
         keep_alive = True
         while keep_alive:
-            # get the pressed key
-            pressed = pygame.key.get_pressed()
-            if pressed[pygame.K_LEFT]:
-                #self.raise_event( self.misc(self.state, "left") )
-                print("left key pressed")
-                self.state = self.state - 1
-                if self.state < 0:
-                    self.state = 2
-                print("next screen: {}".format(self.state))
-                pygame.time.set_timer( self.screen1_event, 0)
-            if pressed[pygame.K_RIGHT]:
-                #self.raise_event( self.misc(self.state, "right") )
-                print("right key pressed")
-                self.state = self.state + 1
-                if self.state > 2:
-                    self.state = 0
-                print("next screen: {}".format(self.state))
-                pygame.time.set_timer( self.screen2_event, 0)
-            if pressed[pygame.K_ESCAPE]:
-                #self.raise_event ( pygame.QUIT )
-                pygame.event.post( pygame.QUIT )
-                print("esc key pressed")
-                keep_alive = False
+            event = pygame.fastevent.wait()
+            #print(event)
 
-    # SDL / Pygame Thread
-    def threadShowScreen(self):
-        while True:
+            if event.type == pygame.KEYDOWN:
+            # Was it the Escape key? If so, stop the loop.
+                if event.key == pygame.K_ESCAPE:
+                    print("helper thread is dieing")
+                    keep_alive = False
 
-            # Main Event handling
-            for e in pygame.event.get():
-                pressed = pygame.key.get_pressed()
-                if pressed[pygame.K_LEFT]: self.raise_event( self.misc(self.state, "left") )
-                if pressed[pygame.K_RIGHT]: self.raise_event( self.misc(self.state, "right") )
-                if pressed[pygame.K_ESCAPE]: sys.exit()
-                print(e)
-                if e.type == self.screen1_event:
-                    self.state = "screen1"
+                if event.key == pygame.K_RIGHT:
+                    print("right key pressed")
+                    self.state = self.state + 1
+                    if self.state > 2:
+                        self.state = 0
+                        ee = pygame.event.Event(self.screen1_event) # enqueue new event
+                    else:
+                        if self.state == 1:
+                            ee = pygame.event.Event(self.screen2_event) # enqueue new event
+                        if self.state == 2:
+                            ee = pygame.event.Event(self.screen3_event) # enqueue new event
+                    pygame.fastevent.post(ee)
+                    print("next screen: {}".format(self.state))
+
+                if event.key == pygame.K_LEFT:
+                    print("left key pressed")
+                    self.state = self.state - 1
+                    if self.state < 0:
+                        self.state = 2
+                        ee = pygame.event.Event(self.screen3_event)
+                    else:
+                        if self.state == 0:
+                            ee = pygame.event.Event(self.screen1_event) # enqueue new event
+                        if self.state == 1:
+                            ee = pygame.event.Event(self.screen2_event)
+                    pygame.fastevent.post(ee)
+                    print("next screen: {}".format(self.state))
+
+            # Events Screen related
+            if event.type == pygame.USEREVENT:
+                if event.type == self.screen1_event:
+                    print("need to handle screen1 change")
                     self.showScreen1()
-                elif e.type == self.screen2_event:
-                    self.state = "screen2"
+                if event.type == self.screen2_event:
+                    print("need to handle screen2 change")
                     self.showScreen2()
-                elif e.type == self.screen3_event:
-                    self.state = "screen3"
+                if event.type == self.screen3_event:
+                    print("need to handle screen3 change")
                     self.showScreen3()
-                if e.type == pygame.QUIT:
-                    raise SystemExit
+
+    # rotate the states left
+    def rotate_left(self):
+        self.state = self.state - 1
+        if self.state < 0:
+            self.state = 2
+
+    # rotate the states right
+    def rotate_right(self):
+        self.state = self.state + 1
+        if self.state > 2:
+            self.state = 0
+
+    # show the screens matching states
+    def show_screens(self):
+        if self.state == 0:
+            self.showScreen1()
+        if self.state == 1:
+            self.showScreen2()
+        if self.state == 2:
+            self.showScreen3()
+        time.sleep(0.001)
+
 
     #todo: Old solution C-Style state-machine|timer based: seperate code in state-machine in run and put other stuff in seperate functions
     #todo: new solution use pygame + python Threading technics (queue, threading) run one thread fetches events, run other thread show the screen (or both?)
     def main(self):
-        running = True
         # initial stuff do only one time
         #todo: Call Server and update data should be in thread safe different thread, calling each day 3-5 times (6 hours)
         self.weather_data = self.callServer(self.weather_data)
         if self.weather_data != None:
             self.updateValues()
 
+        FPS = 60
+        FramePerSec = pygame.time.Clock()
+        FramePerSec.tick(FPS)
+
+        pygame.fastevent.init()
+        pygame.event.set_blocked(pygame.MOUSEMOTION)
+
+        while pygame.fastevent.get_init() == False:
+            pass
+
+        # initial event
+        self.state = 0
+        #ee = pygame.event.Event(self.screen1_event)
+        #pygame.fastevent.post(ee)
+
+        # Event Checker
+        #t0 = threading.Thread(target=self.threadEventChecker)
+        #t0.daemon = True
+        #t0.start()
+        # Event Checker
+
+        self.showScreen1()
+
+        running = True
+        print("=== Initial Stuff ===")
+
         while running:
-            FPS = 60
-            FramePerSec = pygame.time.Clock()
-            FramePerSec.tick(FPS)
 
-            # Thread Screen Shower
-            t1 = threading.Thread(target=self.showScreen1())
-            #t1.daemon = True
 
-            t2 = threading.Thread(target=self.showScreen2())
-            #t2.daemon = True
 
-            t3 = threading.Thread(target=self.showScreen3())
+            """
+            event = pygame.fastevent.wait()
+            print("now in main loop checking first event")
+            # switch screen manually
+            # switch screen from timeout
+            if event.type == pygame.USEREVENT:
+                if event.type == self.screen1_event:
+                    print("need to handle screen1 change")
+                    self.showScreen1()
+                if event.type == self.screen2_event:
+                    print("need to handle screen2 change")
+                    self.showScreen2()
+                if event.type == self.screen3_event:
+                    print("need to handle screen3 change")
+                    self.showScreen3()
+            """
+            event = pygame.event.wait()
+            #for event in pygame.fastevent.get():
+            #print(event)
+            if event.type == pygame.NOEVENT:
+                #ee = pygame.event.Event(self.screen1_event)
+                #pygame.fastevent.post(ee)
+                pass
 
-            # Event Checker
-            #t = threading.Thread(target=self.threadEventChecker)
-            #t.daemon = True
-            #t.start()
-
-            # Event Checker
-            #t2 = threading.Thread(target=self.threadShowScreen)
-            #t2.start()
-
-            #t1.start()
-            #t2.start()
-
-            # begin main event handling
-            for e in pygame.event.get():
-                # get the pressed key
-                pressed = pygame.key.get_pressed()
-                if pressed[pygame.K_ESCAPE]:
-                    pygame.event.post( pygame.QUIT )
-                    print("esc key pressed")
-
-                # switch screen manually
-                # switch screen from timeout
-                if e.type == self.screen1_event:
-                    self.state = "screen1"
-                    print("screen1")
-                    pygame.event.clear()
-                    #t1.join(5.0)
-                    #print(e)
-                if e.type == self.screen2_event:
-                    self.state = "screen2"
-                    print("screen1")
-                    pygame.event.clear()
-                    #t2.join(5.0)
-
-                if e.type == self.screen3_event:
-                    self.state = "screen3"
-                    print("screen3")
-                    pygame.event.clear()
-                    #t3.join(5.0)
-
-                # Exit
-                if e.type == pygame.QUIT:
+            # Events Exit related
+            elif event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    print("main thread is dieing")
                     running = False
-                    pygame.event.clear()
-                    t1.join()
-                    t2.join()
-                    t3.join()
-            # end event handling
+
+                # switching between screens
+                if event.key == pygame.K_RIGHT:
+                    self.rotate_right()
+                    self.show_screens()
+
+                if event.key == pygame.K_LEFT:
+                    self.rotate_left()
+                    self.show_screens()
 
 
 
+            # Events Screen related
+            elif event.type == pygame.USEREVENT:
+                if event.type == self.screen1_event:
+                    print("need to handle screen1 change")
+                    self.showScreen1()
+                if event.type == self.screen2_event:
+                    print("need to handle screen2 change")
+                    self.showScreen2()
+                if event.type == self.screen3_event:
+                    print("need to handle screen3 change")
+                    self.showScreen3()
 
-
+            else:
+                pass # ignore other event types
 
 
 
@@ -711,8 +750,8 @@ class PygameWeather(object):
             # 2. screen, forecast
             self.showScreen2()
             """
-
-        pygame.quit()
+        pygame.display.quit()
+        #pygame.quit()
         exit()
 
 if __name__ == '__main__':
