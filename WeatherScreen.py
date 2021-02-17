@@ -134,6 +134,7 @@ class PygameWeather(object):
     """This class uses pygame and show on [ X-Server | Framebuffer ] graphic Weatherinformation"""
 
     # class variable
+    rotationTime = 20000  # miliseconds, for switching between screens
     updateRate = 7200     # seconds, for server call # update interval
     betweenTime = 20      # seconds, befor screen switching (pause time)
     screenTimeOffset = 20 # same Time like betweenTime, was intentionally the time the screens are show
@@ -172,14 +173,15 @@ class PygameWeather(object):
     forecastSummary = {}
 
     # pygame user events
+    auto_screen_event = pygame.USEREVENT + 50
     screen3_event = pygame.USEREVENT + 3
     screen2_event = pygame.USEREVENT + 2
     screen1_event = pygame.USEREVENT + 1
 
     # set timer for the user events
-    #pygame.time.set_timer(screen1_event, betweenTime) #  fires the event every betweenTime milliseconds
-    #pygame.time.set_timer(screen2_event, betweenTime)
-    #pygame.time.set_timer(screen3_event, betweenTime)
+    #pygame.time.set_timer(screen1_event, rotationTime) #  fires the event every betweenTime milliseconds
+    #pygame.time.set_timer(screen2_event, rotationTime)
+    #pygame.time.set_timer(screen3_event, rotationTime)
 
     def getWeekday(self, number):
         d_today = datetime.datetime.today()
@@ -206,15 +208,17 @@ class PygameWeather(object):
     #  enabled the timer; timer fires the event every given time milliseconds
     def enable_event_timer(self):
         #todo: make it generic:  betweenTime * n-Screennumber
-        pygame.time.set_timer(screen1_event, betweenTime)
-        pygame.time.set_timer(screen2_event, betweenTime*2)
-        pygame.time.set_timer(screen3_event, betweenTime*3)
+        #pygame.time.set_timer(self.screen1_event, self.rotationTime)
+        #pygame.time.set_timer(self.screen2_event, self.rotationTime*2)
+        #pygame.time.set_timer(self.screen3_event, self.rotationTime*3)
+        pygame.time.set_timer(self.auto_screen_event, self.rotationTime)
 
     # disables the timer for event firing
     def disable_event_timer(self):
-        pygame.time.set_timer(screen1_event, 0)
-        pygame.time.set_timer(screen2_event, 0)
-        pygame.time.set_timer(screen3_event, 0)
+        #pygame.time.set_timer(self.screen1_event, 0)
+        #pygame.time.set_timer(self.screen2_event, 0)
+        #pygame.time.set_timer(self.screen3_event, 0)
+        pygame.time.set_timer(self.auto_screen_event, 0)
 
     # shows the next screen, ring rotation style
     def showNext(self):
@@ -226,19 +230,21 @@ class PygameWeather(object):
        lcd.screen.fill(colorBlack)
        pygame.display.update()
        try:
-           picture = installPathImgBig + "easteregg_2.png"
-           logo = pygame.image.load(picture).convert()
-           self.w = logo.get_width() / 2.0
-           self.h = logo.get_height() / 2.0
-           logo = pygame.transform.scale(logo, (self.w,self.h))
-           self.lcd.screen.blit(logo, (0, 0))
-           textAnchorX = 310
-           textAnchorY = 5
-           textYoffset = 40
-           text_surface = self.font.render("Loading ...", True, self.colorWhite)
-           lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-           pygame.display.update()
-           time.sleep(self.screenTimeOffset)
+           #picture = installPathImgBig + "easteregg_2.png"
+           #logo = pygame.image.load(picture).convert()
+           #self.w = logo.get_width() / 2.0
+           #self.h = logo.get_height() / 2.0
+           #logo = pygame.transform.scale(logo, (self.w,self.h))
+           #self.lcd.screen.blit(logo, (0, 0))
+           #textAnchorX = 310
+           #textAnchorY = 5
+           #textYoffset = 40
+           #text_surface = self.font.render("Loading ...", True, self.colorWhite)
+           #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+           #pygame.display.update()
+           #time.sleep(self.screenTimeOffset)
+           #todo: draw a graphics or use fancy circle something
+           pass
        except Exception as e:
            logging.warning(e)
 
@@ -495,9 +501,10 @@ class PygameWeather(object):
                 self.forecastOzones[i] = str(self.weather_data['daily']['data'][i]['ozone'])
                 try:
                     self.forecastIcons[i] = installPathImgSmall + str(self.weather_data['daily']['data'][i]['icon']) + ".png"
-                    print(str(self.weather_data['daily']['data'][i]['icon']))
+                    #print(str(self.weather_data['daily']['data'][i]['icon']))
                 except e:
                     logging.warning("update icons for pictures: {}".format(e))
+            logging.debug("update values/icons done.")
 
     def updateScreen(self, state):
         # clear everything before changeing screens
@@ -614,6 +621,9 @@ class PygameWeather(object):
         self.state = 0
         self.showScreen1()
 
+        # enable timer for screen rotation
+        self.enable_event_timer()
+
         running = True
         print("=== Initial Stuff done ===")
 
@@ -646,19 +656,18 @@ class PygameWeather(object):
                     self.rotate_left()
                     self.show_screens()
 
-
-
-            # Events Screen related
-            elif event.type == pygame.USEREVENT:
-                if event.type == self.screen1_event:
-                    print("need to handle screen1 change")
-                    self.showScreen1()
-                if event.type == self.screen2_event:
-                    print("need to handle screen2 change")
-                    self.showScreen2()
-                if event.type == self.screen3_event:
-                    print("need to handle screen3 change")
-                    self.showScreen3()
+            # Events manageing
+            elif event.type == self.auto_screen_event:
+                print("=== screen rotation ===")
+                self.showNext()
+            elif event.type == self.screen1_event:
+                print("event for screen1 recon")
+            elif event.type == self.screen2_event:
+                print("event for screen2 recon")
+                self.showScreen2()
+            elif event.type == self.screen3_event:
+                print("event for screen3 recon")
+                self.showScreen3()
 
             else:
                 pass # ignore other event types
