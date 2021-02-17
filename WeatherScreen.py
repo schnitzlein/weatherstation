@@ -8,7 +8,7 @@ import string
 import logging
 import datetime
 import calendar
-import threading
+#import threading
 
 # *** Not to be used for commercial use without permission!
 # if you want to buy the icons for commercial use please send me a note - http://vclouds.deviantart.com/ ***
@@ -24,14 +24,14 @@ import threading
 # Playing around with the original Code and adding my own Stuff, so I recycled/changed the code mostly.
 # If you want to use forecast.io or darksky maybe better using this API: https://github.com/Detrous/darksky
 # openweaterdata.org is also a nice API.
+#
+# This application have the goal to show weathergraphics with SDL Library under it.
+# Using Pygame as a Wrapper for SDL Lib. Usage is with X-Server (for testing) and with framebuffer /dev/fbcon.
+# With a LCD Display as main display the framebuffer is used as graphic driver.
 
-#TODO: Threading, Queue, Cleanup, add auto installer, auto config, with python setup tools, and read config ...
 # installPath is like "/home/username/installfolder/img/big" ... ".../small"
 installPathImgBig = "img/big/"
 installPathImgSmall = "img/small/"
-
-# location for Cottbus, Brandenburg, Germany on weather.com
-weatherDotComLocationCode = 'GMXX0171'
 
 
 class PyLcd :
@@ -92,6 +92,13 @@ class PyLcd :
            logging.error("Error creating pygame Screen for X-Server: {}".format(e))
 
     def __init__(self):
+        # chose
+        #disp_no = os.getenv("DISPLAY")
+        #if disp_no:
+        # run X
+        #else
+        # run under fbcon
+
         self.init_xserver_screen()
         logging.debug("pygame screen succesful created.")
         print("pygame screen succesful created.")
@@ -128,10 +135,10 @@ class PygameWeather(object):
 
     # class variable
     updateRate = 7200     # seconds, for server call # update interval
-    betweenTime = 20      # seconds, befor screen switching (pause time) obsolet
+    betweenTime = 20      # seconds, befor screen switching (pause time)
     screenTimeOffset = 20 # same Time like betweenTime, was intentionally the time the screens are show
     # more vars
-    app_states = ["initial", "screen1", "screen2", "screen3", "network"]
+    app_states = ["initial", "screen1", "screen2", "screen3", "network"] #obsolete
     lcd_states = [0,1,2]
     state = 0
     weather_data = {}
@@ -257,7 +264,7 @@ class PygameWeather(object):
             return old_values
         # todo add dict return
 
-    # see a clock with secounds, just call it in loop or as many times as you need it, after it clear the screen !
+    # see a clock with secounds
     def showClock(self):
         # clear screen and update
         lcd.screen.fill(colorBlack)
@@ -269,8 +276,9 @@ class PygameWeather(object):
         pygame.display.update()
         time.sleep(1)
 
+    # format text based on value and return it for blit on text surface
     def showUVcolored(self):
-        uv = self.weather_data['currently']['uvIndex'] # int(self.uv.split()[0])
+        uv = self.weather_data['currently']['uvIndex']
         if uv >= 0 and uv <= 2:
             colored_text_surface = font.render('{} niedrig'.format(self.uv), True, colorGreen)
         elif uv >= 3 and uv <= 5:
@@ -291,7 +299,6 @@ class PygameWeather(object):
 
         # Render the weather logo at 0,0
         icon = installPathImgBig + (self.weather_data['currently']['icon']) + ".png"
-        print(icon)
         try:
             logo = pygame.image.load(icon).convert()
         except e:
@@ -333,14 +340,8 @@ class PygameWeather(object):
         # wait between screen changes screenTimeOffset alias first betweenTime
         pygame.display.update()
         # wait
-        #time.sleep(self.screenTimeOffset)
-        #self.betweenTime += self.screenTimeOffset
-        # blank the screen after screenTimeOffset
-        #lcd.screen.fill(colorBlack)
-        #pygame.display.update()
 
     def showScreen2(self):
-        # state = screen2
         # blank the screen
         lcd.screen.fill(colorBlack)
         pygame.display.update()
@@ -365,10 +366,6 @@ class PygameWeather(object):
         for i in range(1, 5):
             try:
                 textAnchorY = 10
-                print(self.forecastDays[i])
-                print(self.forecaseHighs[i])
-                print(self.forecaseLows[i])
-                print(self.forecastIcons[i])
                 text_surface = fontS2.render(self.forecastDays[i], True, colorWhite)
                 lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 textAnchorY+=textYoffset
@@ -390,7 +387,6 @@ class PygameWeather(object):
                 #text_surface = fontS2.render(self.forecastPrecips[i], True, colorWhite) # Niederschlag
                 #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
                 #textAnchorY+=textYoffset
-
             except pygame.error as message:
                 logging.warning("showscreen2 text: {}".format(message))
             try:
@@ -401,10 +397,6 @@ class PygameWeather(object):
               lcd.screen.blit(logo, (textAnchorX, textAnchorY))
               textAnchorX+=textXoffset
             except pygame.error as message:
-              #logging.warn(self.forecastIcons) # to see which icons are missing or is empty json
-              #str = "err width: {}" .format(self.w)
-              #str = str + " height: {}" .format(h)
-              #logging.warn(str)
               logging.warning("showscreen2 icons: {}".format(message))
               textAnchorX+=textXoffset
 
@@ -426,18 +418,11 @@ class PygameWeather(object):
         pygame.display.update()
 
         # wait
-        #time.sleep(self.screenTimeOffset)
-        #self.betweenTime += self.screenTimeOffset
 
-        # blank the screen after screenTimeOffset
-        #lcd.screen.fill(colorBlack)
-        #pygame.display.update()
-        # Wait
-        #time.sleep(updateRate)
 
     def showScreen3(self):
         # screen3 siesta beginns
-        if (time.strftime("%H:%M") >= '11:00' and time.strftime("%H:%M") <= '15:00') and self.weather_data['currently']['uvIndex'] >= 6:
+        if (time.strftime("%H:%M") >= '01:00' and time.strftime("%H:%M") <= '15:00') or self.weather_data['currently']['uvIndex'] >= 6:
             lcd.screen.fill(colorBlack)
             icon = installPathImgBig + "siesta.jpeg"
             logo = pygame.image.load(icon).convert()
@@ -477,16 +462,19 @@ class PygameWeather(object):
 
     def updateValues(self):
         if self.weather_data != {} and self.weather_data != None:
-            # extract current data for today
-            self.windSpeed = str(self.weather_data['currently']['windSpeed'])
-            self.currWind = "{} km/h ".format(self.windSpeed)
-            self.currTemp = str( self.weather_data['currently']['temperature'] ) + u' \N{DEGREE SIGN}' + "C"
-            self.currPress = str( self.weather_data['currently']['pressure'] ) + " mb"
-            self.ozon =  "{} Ozone".format(self.weather_data['currently']['ozone'])
-            self.uv = "{} UV-Index".format(self.weather_data['currently']['uvIndex'])
-            self.humid = "{}% Humidity".format(self.weather_data['currently']['humidity'] * 100)
-            self.currTempFeeling = "gefühlt " + str( self.weather_data['currently']['apparentTemperature'] ) + u' \N{DEGREE SIGN}' + "C"
-            self.todayDesc = str( self.weather_data['currently']['summary'] )
+            try:
+                # extract current data for today
+                self.windSpeed = str(self.weather_data['currently']['windSpeed'])
+                self.currWind = "{} km/h ".format(self.windSpeed)
+                self.currTemp = str( self.weather_data['currently']['temperature'] ) + u' \N{DEGREE SIGN}' + "C"
+                self.currPress = str( self.weather_data['currently']['pressure'] ) + " mb"
+                self.ozon =  "{} Ozone".format(self.weather_data['currently']['ozone'])
+                self.uv = "{} UV-Index".format(self.weather_data['currently']['uvIndex'])
+                self.humid = "{}% Humidity".format(self.weather_data['currently']['humidity'] * 100)
+                self.currTempFeeling = "gefühlt " + str( self.weather_data['currently']['apparentTemperature'] ) + u' \N{DEGREE SIGN}' + "C"
+                self.todayDesc = str( self.weather_data['currently']['summary'] )
+            except e:
+                logging.warning("in update values: {}".format(e))
 
             # summary and description of forecast data
             self.forecastDesc = ["Day", "Max" + u'\N{DEGREE SIGN}' + "C", "Min" + u'\N{DEGREE SIGN}' + "C", "Hum", "km/h", "UV"] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
@@ -602,11 +590,12 @@ class PygameWeather(object):
         time.sleep(0.001)
 
 
-    #todo: Old solution C-Style state-machine|timer based: seperate code in state-machine in run and put other stuff in seperate functions
-    #todo: new solution use pygame + python Threading technics (queue, threading) run one thread fetches events, run other thread show the screen (or both?)
     def main(self):
         # initial stuff do only one time
-        #todo: Call Server and update data should be in thread safe different thread, calling each day 3-5 times (6 hours)
+        #todo: Call Server and update data (calling each day 3-5 times (6 hours))
+        #todo: in initial setup, fire an event which rise again in 6 hours
+
+        # initial server calling
         self.weather_data = self.callServer(self.weather_data)
         if self.weather_data != None:
             self.updateValues()
@@ -621,42 +610,17 @@ class PygameWeather(object):
         while pygame.fastevent.get_init() == False:
             pass
 
-        # initial event
+        # initial screen
         self.state = 0
-        #ee = pygame.event.Event(self.screen1_event)
-        #pygame.fastevent.post(ee)
-
-        # Event Checker
-        #t0 = threading.Thread(target=self.threadEventChecker)
-        #t0.daemon = True
-        #t0.start()
-        # Event Checker
-
         self.showScreen1()
 
         running = True
-        print("=== Initial Stuff ===")
+        print("=== Initial Stuff done ===")
 
+        # main loop
         while running:
 
-
-
-            """
-            event = pygame.fastevent.wait()
-            print("now in main loop checking first event")
-            # switch screen manually
-            # switch screen from timeout
-            if event.type == pygame.USEREVENT:
-                if event.type == self.screen1_event:
-                    print("need to handle screen1 change")
-                    self.showScreen1()
-                if event.type == self.screen2_event:
-                    print("need to handle screen2 change")
-                    self.showScreen2()
-                if event.type == self.screen3_event:
-                    print("need to handle screen3 change")
-                    self.showScreen3()
-            """
+            # Event Checker
             event = pygame.event.wait()
             #for event in pygame.fastevent.get():
             #print(event)
@@ -673,7 +637,7 @@ class PygameWeather(object):
                     print("main thread is dieing")
                     running = False
 
-                # switching between screens
+                # switching between screens on Events Arrow Keys
                 if event.key == pygame.K_RIGHT:
                     self.rotate_right()
                     self.show_screens()
@@ -698,54 +662,18 @@ class PygameWeather(object):
 
             else:
                 pass # ignore other event types
-
+            # Event Checker
 
 
             # (obsolete) old state machine
             """
-            self.showClock()
-            self.weather_data = self.callServer(self.weather_data)
-            if self.weather_data != None:
-                self.updateValues()
-                self.state = "screen1"
-                self.showScreen1()
-
-                self.state = "screen2"
-                self.showScreen2()
-
-                self.state = "screen3"
-                self.showScreen3()
-            """
-
-            """
-            # retrieve data from weather.com and keep old values if no connection
-            if self.state == "initial":
-              self.weather_data = self.callServer( self.weather_data )
-              logging.info("Inital calling server successful!")
-              print(self.weather_data)
-              self.progressScreen()
-              self.state = "screen1"
-
-
             if self.betweenTime >= self.updateRate:
               self.betweenTime = 0
-              self.state = "network"
+              self.progressScreen() # todo: draw some graphical informations on current screen
               logging.info(format(self.updateRate) + " seconds is over, Calling server...")
               self.weather_data = self.callServer( self.weather_data )
               logging.info("Calling server successful")
-              self.state = "screen1"
 
-            # special screen
-            self.showScreen3()
-
-            # after network calling update the values
-            self.updateValues()
-
-            # 1. screen, dayInformation
-            self.showScreen1()
-
-            # 2. screen, forecast
-            self.showScreen2()
             """
         pygame.display.quit()
         #pygame.quit()
