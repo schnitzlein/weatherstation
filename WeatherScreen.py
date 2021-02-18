@@ -9,6 +9,9 @@ import logging
 import datetime
 import calendar
 #import threading
+import random
+
+
 
 # *** Not to be used for commercial use without permission!
 # if you want to buy the icons for commercial use please send me a note - http://vclouds.deviantart.com/ ***
@@ -125,7 +128,7 @@ colorPurple = (240,0,255)
 # font
 fontpath = pygame.font.match_font('dejavusansmono')
 # set up 3 sizes
-font = pygame.font.Font(fontpath, 36)
+font = pygame.font.Font(fontpath, 32)
 fontS2 = pygame.font.Font(fontpath, 28)
 fontSm = pygame.font.Font(fontpath, 18)
 # Constants
@@ -134,7 +137,8 @@ class PygameWeather(object):
     """This class uses pygame and show on [ X-Server | Framebuffer ] graphic Weatherinformation"""
 
     # class variable
-    rotationTime = 20000  # miliseconds, for switching between screens
+    downloadTime = 21600000 # miliseconds
+    rotationTime = 20000    # miliseconds, for switching between screens
     updateRate = 7200     # seconds, for server call # update interval
     betweenTime = 20      # seconds, befor screen switching (pause time)
     screenTimeOffset = 20 # same Time like betweenTime, was intentionally the time the screens are show
@@ -173,13 +177,14 @@ class PygameWeather(object):
     forecastSummary = {}
 
     # pygame user events
+    download_data_event = pygame.USEREVENT + 51
     auto_screen_event = pygame.USEREVENT + 50
     screen3_event = pygame.USEREVENT + 3
     screen2_event = pygame.USEREVENT + 2
     screen1_event = pygame.USEREVENT + 1
 
-    # set timer for the user events
-    #pygame.time.set_timer(screen1_event, rotationTime) #  fires the event every betweenTime milliseconds
+    # set timer for the user events (milliseconds), fires the event every
+    #pygame.time.set_timer(screen1_event, rotationTime)
     #pygame.time.set_timer(screen2_event, rotationTime)
     #pygame.time.set_timer(screen3_event, rotationTime)
 
@@ -225,28 +230,32 @@ class PygameWeather(object):
         self.rotate_right()
         self.show_screens()
 
+    def create_download_event_timer(self):
+        # jitter: 6h + 0 milisecs [..] 10 mins
+        every_time = self.downloadTime + random.randint(0, 600000)
+        pygame.time.set_timer(self.download_data_event, every_time)
+
 
     def progressScreen(self):
-       lcd.screen.fill(colorBlack)
-       pygame.display.update()
-       try:
-           #picture = installPathImgBig + "easteregg_2.png"
-           #logo = pygame.image.load(picture).convert()
-           #self.w = logo.get_width() / 2.0
-           #self.h = logo.get_height() / 2.0
-           #logo = pygame.transform.scale(logo, (self.w,self.h))
-           #self.lcd.screen.blit(logo, (0, 0))
-           #textAnchorX = 310
-           #textAnchorY = 5
-           #textYoffset = 40
-           #text_surface = self.font.render("Loading ...", True, self.colorWhite)
-           #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-           #pygame.display.update()
-           #time.sleep(self.screenTimeOffset)
-           #todo: draw a graphics or use fancy circle something
-           pass
-       except Exception as e:
-           logging.warning(e)
+        try:
+            # do this in thread
+            # while self.updateing_data == True:
+            picture = installPathImgBig + "wlan.png"
+            logo = pygame.image.load(picture).convert()
+            self.w = logo.get_width() / 10.0
+            self.h = logo.get_height() / 10.0
+            logo = pygame.transform.scale(logo, (self.w,self.h))
+            textAnchorY = 360
+            textAnchorX = 440
+            self.lcd.screen.blit(logo, (textAnchorX, textAnchorY))
+            #textYoffset = 40
+            text_surface = self.font.render("Downloading ...", True, self.colorWhite)
+            lcd.screen.blit(text_surface, (textAnchorX, textAnchorY+40))
+            #todo: draw a graphics or use fancy circle something
+            pygame.display.update()
+            #pass
+        except Exception as e:
+            logging.error("Something wrong with show progress: {}".format(e))
 
     # call weather server, if no connection or error return old data
     def callServer( self, mydict ):
@@ -267,6 +276,7 @@ class PygameWeather(object):
             # todo: logging
             return None
         if resp.status_code != 200:
+            logging.warning("Using old data from callServer()! Code != 200 error is: {}".format(e))
             return old_values
         # todo add dict return
 
@@ -348,87 +358,96 @@ class PygameWeather(object):
         # wait
 
     def showScreen2(self):
-        # blank the screen
-        lcd.screen.fill(colorBlack)
-        pygame.display.update()
+        try:
+            # blank the screen
+            lcd.screen.fill(colorBlack)
+            pygame.display.update()
 
-        # set X axis text anchor for the forecast text
-        textAnchorX = 0
-        textAnchorY = 10
-        textXoffset = 100 #75
-        textYoffset = 40
-        #pygame.draw.line(lcd.screen.get_surface(), colorWhite, (50,10), (450,10),4)
+            # set X axis text anchor for the forecast text
+            textAnchorX = 0
+            textAnchorY = 10
+            textXoffset = 100 #75
+            textYoffset = 40
+            #pygame.draw.line(lcd.screen.get_surface(), colorWhite, (50,10), (450,10),4)
 
-        # add summy of the values in one row
-        for i in range(0,6):
-          text_surface = fontS2.render(self.forecastDesc[i], True, colorWhite)
-          lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-          textAnchorY+=textYoffset
+            # add summy of the values in one row
+            for i in range(0,6):
+              text_surface = fontS2.render(self.forecastDesc[i], True, colorWhite)
+              lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+              textAnchorY+=textYoffset
 
-        textAnchorX+=120
-        textXoffset = 100
+            textAnchorX+=120
+            textXoffset = 100
 
-        # add each days forecast text + icon
-        for i in range(1, 5):
-            try:
-                textAnchorY = 10
-                text_surface = fontS2.render(self.forecastDays[i], True, colorWhite)
-                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                textAnchorY+=textYoffset
-                text_surface = fontS2.render(self.forecaseHighs[i], True, colorWhite)
-                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                textAnchorY+=textYoffset
-                text_surface = fontS2.render(self.forecaseLows[i], True, colorWhite)
-                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                textAnchorY+=textYoffset
-                text_surface = fontS2.render(self.forecastHums[i], True, colorWhite)
-                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                textAnchorY+=textYoffset
-                text_surface = fontS2.render(self.forecastWinds[i], True, colorWhite)
-                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                textAnchorY+=textYoffset
-                text_surface = fontS2.render(self.forecastUVs[i], True, colorWhite)
-                lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                textAnchorY+=textYoffset
-                #text_surface = fontS2.render(self.forecastPrecips[i], True, colorWhite) # Niederschlag
-                #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-                #textAnchorY+=textYoffset
-            except pygame.error as message:
-                logging.warning("showscreen2 text: {}".format(message))
-            try:
-              logo = pygame.image.load(self.forecastIcons[i]).convert()
-              self.w = logo.get_width()
-              self.h = logo.get_height()
-              logo = pygame.transform.scale(logo, (self.w,self.h))
-              lcd.screen.blit(logo, (textAnchorX, textAnchorY))
-              textAnchorX+=textXoffset
-            except pygame.error as message:
-              logging.warning("showscreen2 icons: {}".format(message))
-              textAnchorX+=textXoffset
+            # add each days forecast text + icon
+            for i in range(1, 5):
+                try:
+                    textAnchorY = 10
+                    text_surface = fontS2.render(self.forecastDays[i], True, colorWhite)
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    textAnchorY+=textYoffset
+                    text_surface = fontS2.render(self.forecaseHighs[i], True, colorWhite)
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    textAnchorY+=textYoffset
+                    text_surface = fontS2.render(self.forecaseLows[i], True, colorWhite)
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    textAnchorY+=textYoffset
+                    text_surface = fontS2.render(self.forecastHums[i], True, colorWhite)
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    textAnchorY+=textYoffset
+                    text_surface = fontS2.render(self.forecastWinds[i], True, colorWhite)
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    textAnchorY+=textYoffset
+                    text_surface = fontS2.render(self.forecastUVs[i], True, colorWhite)
+                    lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    textAnchorY+=textYoffset
+                    #text_surface = fontS2.render(self.forecastPrecips[i], True, colorWhite) # Niederschlag
+                    #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+                    #textAnchorY+=textYoffset
+                except pygame.error as message:
+                    logging.warning("showscreen2 text at position i: {}, {}".format(i, message))
+                try:
+                    logo = pygame.image.load(self.forecastIcons[i]).convert()
+                    self.w = logo.get_width()
+                    self.h = logo.get_height()
+                    logo = pygame.transform.scale(logo, (self.w,self.h))
+                    lcd.screen.blit(logo, (textAnchorX, textAnchorY))
+                    textAnchorX+=textXoffset
+                except FileNotFoundError:
+                    logging.warning("showscreen2: cannot found a picture at position i: {}, {}".format(i, self.forecastIcons[i]))
+                    self.forecastIcons[i] = installPathImgSmall + "na.png"
+                    logo = pygame.image.load(self.forecastIcons[i]).convert()
+                    self.w = logo.get_width()
+                    self.h = logo.get_height()
+                    logo = pygame.transform.scale(logo, (self.w,self.h))
+                    lcd.screen.blit(logo, (textAnchorX, textAnchorY))
+                    textAnchorX+=textXoffset
+                except pygame.error as message:
+                    logging.warning("showscreen2 icons: {}".format(message))
 
+            # today desc under the table
+            textAnchorY = 330
+            textAnchorX = 440
+            updated = time.strftime("%H:%M")
+            text_surface = fontS2.render('{}'.format(updated) , True, colorWhite)
+            lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
-        # today desc under the table
-        textAnchorY = 330
-        textAnchorX = 440
-        updated = time.strftime("%H:%M")
-        text_surface = fontS2.render('{}'.format(updated) , True, colorWhite)
-        lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
+            # update when information
+            #textAnchorY+=textYoffset
+            #updated = time.strftime("%A %H:%M") #time.strftime("%H:%M:%S"), time.strftime("%H:%M"), time.strftime("%c"), time.strftime("%A %H:%M")
+            #text_surface = fontS2.render(updated, True, colorWhite)
+            #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
 
-        # update when information
-        #textAnchorY+=textYoffset
-        #updated = time.strftime("%A %H:%M") #time.strftime("%H:%M:%S"), time.strftime("%H:%M"), time.strftime("%c"), time.strftime("%A %H:%M")
-        #text_surface = fontS2.render(updated, True, colorWhite)
-        #lcd.screen.blit(text_surface, (textAnchorX, textAnchorY))
-
-        # update screen with forecast text
-        pygame.display.update()
-
+            # update screen with forecast text
+            pygame.display.update()
+        except Exception as e:
+            print("error: {}".format(e))
         # wait
 
 
     def showScreen3(self):
         # screen3 siesta beginns
-        if (time.strftime("%H:%M") >= '01:00' and time.strftime("%H:%M") <= '15:00') or self.weather_data['currently']['uvIndex'] >= 6:
+        if (time.strftime("%H:%M") >= '11:00' and time.strftime("%H:%M") <= '15:00') or self.weather_data['currently']['uvIndex'] >= 6:
             lcd.screen.fill(colorBlack)
             icon = installPathImgBig + "siesta.jpeg"
             logo = pygame.image.load(icon).convert()
@@ -448,7 +467,7 @@ class PygameWeather(object):
             self.betweenTime += self.screenTimeOffset
         # screen3 siesta ends
         # screen3 beginn
-        if (time.strftime("%H:%M") >= '18:00' and time.strftime("%H:%M") <= '24:00') or (time.strftime("%d/%m") == '05/12'):
+        if (time.strftime("%H:%M") >= '18:00' and time.strftime("%H:%M") <= '19:30') or (time.strftime("%d/%m") == '05/12'):
             lcd.screen.fill(colorBlack)
             icon = installPathImgBig + "easteregg.png"
             logo = pygame.image.load(icon).convert()
@@ -480,7 +499,7 @@ class PygameWeather(object):
                 self.currTempFeeling = "gefühlt " + str( self.weather_data['currently']['apparentTemperature'] ) + u' \N{DEGREE SIGN}' + "C"
                 self.todayDesc = str( self.weather_data['currently']['summary'] )
             except e:
-                logging.warning("in update values: {}".format(e))
+                logging.warning("fetching data error in currently data: {}".format(e))
 
             # summary and description of forecast data
             self.forecastDesc = ["Day", "Max" + u'\N{DEGREE SIGN}' + "C", "Min" + u'\N{DEGREE SIGN}' + "C", "Hum", "km/h", "UV"] # forecastDesc = ["Day", "Max", "Min", "Hum", "Kmh"]
@@ -488,17 +507,19 @@ class PygameWeather(object):
             for i in range(0, 5):
                 if not(self.weather_data['daily']['data'][i]):
                     break
-
-                self.forecastDays[i] = self.getWeekday(i)
-                self.forecastSummary[i] = str(self.weather_data['daily']['data'][i]['summary'])
-                self.forecaseHighs[i] = str(self.weather_data['daily']['data'][i]['temperatureHigh'])
-                self.forecaseLows[i] = str(self.weather_data['daily']['data'][i]['temperatureLow'])
-                self.forecastPrecips[i] = str(self.weather_data['daily']['data'][i]['precipType'])
-                self.forecastPrecipProps[i] = str(self.weather_data['daily']['data'][i]['precipProbability'] * 100) + "%"
-                self.forecastWinds[i] = str(self.weather_data['daily']['data'][i]['windSpeed'])
-                self.forecastHums[i] = str(self.weather_data['daily']['data'][i]['humidity'] * 100) + "%"
-                self.forecastUVs[i] = str(self.weather_data['daily']['data'][i]['uvIndex'])
-                self.forecastOzones[i] = str(self.weather_data['daily']['data'][i]['ozone'])
+                try:
+                    self.forecastDays[i] = self.getWeekday(i)
+                    self.forecastSummary[i] = str(self.weather_data['daily']['data'][i]['summary'])
+                    self.forecaseHighs[i] = str(self.weather_data['daily']['data'][i]['temperatureHigh'])
+                    self.forecaseLows[i] = str(self.weather_data['daily']['data'][i]['temperatureLow'])
+                    self.forecastPrecips[i] = str(self.weather_data['daily']['data'][i]['precipType'])
+                    self.forecastPrecipProps[i] = str(self.weather_data['daily']['data'][i]['precipProbability'] * 100) + "%"
+                    self.forecastWinds[i] = str(self.weather_data['daily']['data'][i]['windSpeed'])
+                    self.forecastHums[i] = str(self.weather_data['daily']['data'][i]['humidity'] * 100) + "%"
+                    self.forecastUVs[i] = str(self.weather_data['daily']['data'][i]['uvIndex'])
+                    self.forecastOzones[i] = str(self.weather_data['daily']['data'][i]['ozone'])
+                except e:
+                    logging.warning("fetching data error in forecast data: {}".format(e))
                 try:
                     self.forecastIcons[i] = installPathImgSmall + str(self.weather_data['daily']['data'][i]['icon']) + ".png"
                     #print(str(self.weather_data['daily']['data'][i]['icon']))
@@ -614,6 +635,7 @@ class PygameWeather(object):
         pygame.fastevent.init()
         pygame.event.set_blocked(pygame.MOUSEMOTION)
 
+        # wait until fastevent system is alive
         while pygame.fastevent.get_init() == False:
             pass
 
@@ -623,6 +645,9 @@ class PygameWeather(object):
 
         # enable timer for screen rotation
         self.enable_event_timer()
+
+        # enable first download timer
+        #pygame.time.set_timer(self.download_data_event, self.downloadTime)
 
         running = True
         print("=== Initial Stuff done ===")
@@ -668,6 +693,19 @@ class PygameWeather(object):
             elif event.type == self.screen3_event:
                 print("event for screen3 recon")
                 self.showScreen3()
+            elif event.type == self.download_data_event:
+                print("=== download event ===")
+                # handle event
+                #self.progressScreen()
+                #self.weather_data = self.callServer(self.weather_data)
+                #if self.weather_data != None:
+                #    self.updateValues()
+                #    self.self.updateing_data = False
+                #    logging.info("Calling server successful")
+                # handle timer
+                #pygame.event.clear(self.download_data_event) # delete old event
+                #self.create_download_event_timer() # create new event with jitter
+
 
             else:
                 pass # ignore other event types
@@ -689,7 +727,7 @@ class PygameWeather(object):
         exit()
 
 if __name__ == '__main__':
-  logging.basicConfig(level=logging.DEBUG, filename="mylogfile", filemode="a+", format="%(asctime)s %(levelname)s:%(message)s")
+  logging.basicConfig(level=logging.DEBUG, filename="logfile", filemode="a+", format="%(asctime)s %(levelname)s:%(message)s")
   try:
     myweatherprogramm = PygameWeather()
     myweatherprogramm.main()
