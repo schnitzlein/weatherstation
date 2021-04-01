@@ -28,3 +28,27 @@ Disclaimer Warranty
 The Icons are by Merlin the Red, with great thanks to him.
 http://www.deviantart.com/art/plain-weather-icons-157162192
 There are only for private purpose not for commercial use.
+
+## Installation
+
+Install pygame and use python3 (because python2 is End-of-Life support (EOL))
+
+If there is any error related missing something from SDL Library, like:
+
+```
+ERROR:root:Error creating pygame Screen for X-Server: font module not available (ImportError: libSDL2_ttf-2.0.so.0: cannot open shared object file: No such file or directory)
+```
+
+
+install python3 SDL Support
+```
+sudo apt-get install python3-sdl2
+```
+
+
+### fbcon driver only (no X-Server)
+disable the x-server in os and make sure fbcon driver is set properly.
+
+
+### openweater data api usage
+tbd
